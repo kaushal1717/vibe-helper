@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
-import { useSession } from "next-auth/react"
+import { useState, useEffect } from "react"
+import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 
 export default function AddRule() {
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = useSession()
   const router = useRouter()
   const [title, setTitle] = useState("")
   const [techStack, setTechStack] = useState("")
@@ -16,7 +16,13 @@ export default function AddRule() {
   const [loading, setLoading] = useState(false)
 
   // Redirect to login if not authenticated
-  if (status === "loading") {
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.push("/login")
+    }
+  }, [session, isPending, router])
+
+  if (isPending) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <p className="text-gray-600">Loading...</p>
@@ -24,8 +30,7 @@ export default function AddRule() {
     )
   }
 
-  if (status === "unauthenticated") {
-    router.push("/login")
+  if (!session) {
     return null
   }
 

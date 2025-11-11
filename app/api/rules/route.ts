@@ -39,7 +39,9 @@ export async function GET(req: NextRequest) {
 // POST create new cursor rule (protected)
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth()
+    const session = await auth.api.getSession({
+      headers: req.headers,
+    })
 
     if (!session?.user?.id) {
       return NextResponse.json(

@@ -1,10 +1,15 @@
 "use client"
 
 import Link from "next/link"
-import { useSession, signOut } from "next-auth/react"
+import { useSession, signOut } from "@/lib/auth-client"
 
 export default function Navbar() {
   const { data: session } = useSession()
+
+  const handleSignOut = async () => {
+    await signOut()
+    window.location.href = "/"
+  }
 
   return (
     <nav className="bg-white shadow-sm border-b">
@@ -29,7 +34,7 @@ export default function Navbar() {
                   Add Rule
                 </Link>
                 <button
-                  onClick={() => signOut()}
+                  onClick={handleSignOut}
                   className="text-gray-700 hover:text-gray-900"
                 >
                   Sign Out
