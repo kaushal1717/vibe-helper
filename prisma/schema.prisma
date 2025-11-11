@@ -6,12 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String    @id @default(cuid())
+  user_id       String    @id @default(cuid()) @map("_id")
   name          String?
   email         String    @unique
   password      String
@@ -24,14 +24,14 @@ model User {
 }
 
 model CursorRule {
-  id          String   @id @default(cuid())
+  id          String   @id @default(cuid()) @map("_id")
   title       String
   techStack   String
   description String?
-  content     String   @db.Text
+  content     String
   isPublic    Boolean  @default(true)
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

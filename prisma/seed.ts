@@ -145,7 +145,7 @@ Performance:
     await prisma.cursorRule.create({
       data: {
         ...rule,
-        userId: user.id,
+        userId: user.user_id,
       },
     })
     console.log(`Created rule: ${rule.title}`)
