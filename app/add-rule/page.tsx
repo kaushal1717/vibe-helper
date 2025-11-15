@@ -1,41 +1,69 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession } from "@/lib/auth-client"
+import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { createRuleSchema, type CreateRuleInput } from "@/lib/validations/rule"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { TagInput } from "@/components/shared/tag-input"
+import { Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 export default function AddRule() {
-  const { data: session, isPending } = useSession()
+  const { isSignedIn, isLoaded } = useUser()
   const router = useRouter()
-  const [title, setTitle] = useState("")
-  const [techStack, setTechStack] = useState("")
-  const [description, setDescription] = useState("")
-  const [content, setContent] = useState("")
-  const [isPublic, setIsPublic] = useState(true)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [tags, setTags] = useState<string[]>([])
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm<CreateRuleInput>({
+    resolver: zodResolver(createRuleSchema),
+    defaultValues: {
+      isPublic: true,
+      tags: [],
+    },
+  })
+
+  const isPublic = watch("isPublic")
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!isPending && !session) {
-      router.push("/login")
+    if (isLoaded && !isSignedIn) {
+      router.push("/")
     }
-  }, [session, isPending, router])
+  }, [isSignedIn, isLoaded, router])
 
-  if (isPending) {
+  // Update form tags when state changes
+  useEffect(() => {
+    setValue("tags", tags)
+  }, [tags, setValue])
+
+  if (!isLoaded) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
   }
 
-  if (!session) {
+  if (!isSignedIn) {
     return null
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = async (data: CreateRuleInput) => {
     setError("")
     setLoading(true)
 
@@ -45,23 +73,18 @@ export default function AddRule() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          title,
-          techStack,
-          description,
-          content,
-          isPublic,
-        }),
+        body: JSON.stringify(data),
       })
 
-      const data = await response.json()
+      const result = await response.json()
 
       if (!response.ok) {
-        setError(data.error || "Failed to create rule")
+        setError(result.error || "Failed to create rule")
         setLoading(false)
         return
       }
 
+      toast.success("Rule created successfully!")
       router.push("/")
       router.refresh()
     } catch (error) {
@@ -71,113 +94,121 @@ export default function AddRule() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">
-            Add New Cursor Rule
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Share your cursor rules with the community
-          </p>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Add New Cursor Rule</CardTitle>
+            <CardDescription>
+              Share your cursor rules with the community
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow-sm rounded-lg p-6 border border-gray-200">
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
+              <div className="space-y-2">
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  placeholder="e.g., React Best Practices"
+                  {...register("title")}
+                  disabled={loading}
+                />
+                {errors.title && (
+                  <p className="text-sm text-red-600">{errors.title.message}</p>
+                )}
+              </div>
 
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-              Title *
-            </label>
-            <input
-              type="text"
-              id="title"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="e.g., React Best Practices"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="techStack">Tech Stack *</Label>
+                <Input
+                  id="techStack"
+                  placeholder="e.g., React, Next.js, TypeScript"
+                  {...register("techStack")}
+                  disabled={loading}
+                />
+                {errors.techStack && (
+                  <p className="text-sm text-red-600">{errors.techStack.message}</p>
+                )}
+              </div>
 
-          <div>
-            <label htmlFor="techStack" className="block text-sm font-medium text-gray-700">
-              Tech Stack *
-            </label>
-            <input
-              type="text"
-              id="techStack"
-              required
-              value={techStack}
-              onChange={(e) => setTechStack(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="e.g., React, Next.js, TypeScript"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  rows={3}
+                  placeholder="Brief description of the rule"
+                  {...register("description")}
+                  disabled={loading}
+                />
+                {errors.description && (
+                  <p className="text-sm text-red-600">{errors.description.message}</p>
+                )}
+              </div>
 
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Description
-            </label>
-            <textarea
-              id="description"
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="Brief description of the rule"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="tags">Tags</Label>
+                <TagInput
+                  tags={tags}
+                  onChange={setTags}
+                  placeholder="Add tags (press Enter or comma)"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Add relevant tags to help others find your rule
+                </p>
+              </div>
 
-          <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-              Cursor Rule Content *
-            </label>
-            <textarea
-              id="content"
-              rows={10}
-              required
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm font-mono"
-              placeholder="Paste your cursor rule here..."
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="content">Cursor Rule Content *</Label>
+                <Textarea
+                  id="content"
+                  rows={12}
+                  placeholder="Paste your cursor rule here..."
+                  className="font-mono text-sm"
+                  {...register("content")}
+                  disabled={loading}
+                />
+                {errors.content && (
+                  <p className="text-sm text-red-600">{errors.content.message}</p>
+                )}
+              </div>
 
-          <div className="flex items-center">
-            <input
-              id="isPublic"
-              type="checkbox"
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label htmlFor="isPublic" className="ml-2 block text-sm text-gray-900">
-              Make this rule public
-            </label>
-          </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  id="isPublic"
+                  type="checkbox"
+                  checked={isPublic}
+                  onChange={(e) => setValue("isPublic", e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  disabled={loading}
+                />
+                <Label htmlFor="isPublic" className="font-normal cursor-pointer">
+                  Make this rule public
+                </Label>
+              </div>
 
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              {loading ? "Creating..." : "Create Rule"}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+              <div className="flex gap-4">
+                <Button type="submit" className="flex-1" disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Create Rule
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push("/")}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

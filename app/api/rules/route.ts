@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/prisma"
 
 // GET all public cursor rules
@@ -18,6 +18,14 @@ export async function GET(req: NextRequest) {
           select: {
             name: true,
             email: true,
+            image: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+            favorites: true,
           },
         },
       },
@@ -39,18 +47,16 @@ export async function GET(req: NextRequest) {
 // POST create new cursor rule (protected)
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: req.headers,
-    })
+    const { userId } = await auth()
 
-    if (!session?.user?.id) {
+    if (!userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       )
     }
 
-    const { title, techStack, description, content, isPublic } = await req.json()
+    const { title, techStack, description, content, isPublic, tags } = await req.json()
 
     if (!title || !techStack || !content) {
       return NextResponse.json(
@@ -59,6 +65,16 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Find or create user in database
+    const user = await prisma.user.upsert({
+      where: { user_id: userId },
+      update: {},
+      create: {
+        user_id: userId,
+        email: "", // Clerk handles auth, email not required
+      },
+    })
+
     const rule = await prisma.cursorRule.create({
       data: {
         title,
@@ -66,13 +82,22 @@ export async function POST(req: NextRequest) {
         description: description || null,
         content,
         isPublic: isPublic ?? true,
-        userId: session.user.id,
+        tags: tags || [],
+        userId: user.user_id,
       },
       include: {
         user: {
           select: {
             name: true,
             email: true,
+            image: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+            favorites: true,
           },
         },
       },

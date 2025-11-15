@@ -23,6 +23,9 @@ model User {
   rules         CursorRule[]
   sessions      Session[]
   accounts      Account[]
+  likes         Like[]
+  comments      Comment[]
+  favorites     Favorite[]
 }
 
 model Session {
@@ -58,17 +61,64 @@ model Account {
 }
 
 model CursorRule {
-  id          String   @id @default(cuid()) @map("_id")
+  id          String    @id @default(cuid()) @map("_id")
   title       String
   techStack   String
   description String?
   content     String
-  isPublic    Boolean  @default(true)
+  isPublic    Boolean   @default(true)
   userId      String
-  user        User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  user        User      @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  viewCount   Int       @default(0)
+  copyCount   Int       @default(0)
+  tags        String[]  @default([])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  likes       Like[]
+  comments    Comment[]
+  favorites   Favorite[]
 
   @@index([techStack])
+  @@index([userId])
+}
+
+model Like {
+  id        String   @id @default(cuid()) @map("_id")
+  userId    String
+  ruleId    String
+  user      User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  rule      CursorRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, ruleId])
+  @@index([ruleId])
+  @@index([userId])
+}
+
+model Comment {
+  id        String   @id @default(cuid()) @map("_id")
+  content   String
+  userId    String
+  ruleId    String
+  user      User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  rule      CursorRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ruleId])
+  @@index([userId])
+}
+
+model Favorite {
+  id        String   @id @default(cuid()) @map("_id")
+  userId    String
+  ruleId    String
+  user      User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  rule      CursorRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, ruleId])
+  @@index([ruleId])
   @@index([userId])
 }
