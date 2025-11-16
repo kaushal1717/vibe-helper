@@ -495,36 +495,45 @@ export default function RuleDetailPage() {
 
   if (error || !rule) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Rule Not Found
-        </h2>
-        <p className="text-gray-600 mb-6">
-          {error || "The rule you're looking for doesn't exist."}
-        </p>
-        <Button onClick={() => router.push("/")}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Home
-        </Button>
+      <div className="min-h-screen flex flex-col items-center justify-center px-4">
+        <div className="glass-panel max-w-md w-full p-8 rounded-2xl border-[1.5px] border-white/60 shadow-2xl text-center slide-up">
+          <h2 className="text-3xl font-black text-foreground mb-4 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
+            Rule Not Found
+          </h2>
+          <p className="text-foreground/60 mb-8 font-medium text-lg">
+            {error || "The rule you're looking for doesn't exist."}
+          </p>
+          <Button
+            onClick={() => router.push("/")}
+            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold shadow-lg"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 lg:px-8 bg-linear-to-b from-gray-50 to-white">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" onClick={() => router.push("/")}>
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 slide-up">
+          <Button
+            variant="ghost"
+            onClick={() => router.push("/")}
+            className="hover:bg-secondary/10 transition-all duration-200 font-bold"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             {showOriginal ? "Back to Rules" : uiLabels.backToRules}
           </Button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Select
               value={selectedLanguage}
               onValueChange={handleLanguageChange}
             >
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[140px] border-foreground/20 font-semibold">
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>
               <SelectContent>
@@ -540,6 +549,7 @@ export default function RuleDetailPage() {
               disabled={!selectedLanguage || isTranslating}
               variant="default"
               size="default"
+              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold shadow-lg"
             >
               <Languages className="h-4 w-4 mr-2" />
               {isTranslating ? "Translating..." : uiLabels.translate}
@@ -549,6 +559,7 @@ export default function RuleDetailPage() {
                 onClick={handleShowOriginal}
                 variant="outline"
                 size="default"
+                className="border-foreground/20 font-bold"
               >
                 {uiLabels.showOriginal}
               </Button>
@@ -556,34 +567,35 @@ export default function RuleDetailPage() {
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between mb-4">
-              <Badge variant="secondary" className="w-fit">
+        <Card className="glass-panel hover-glow border-[1.5px] border-white/60 shadow-2xl slide-up overflow-hidden">
+          <CardHeader className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <Badge variant="secondary" className="bg-secondary/10 border-secondary/20 text-secondary border font-bold text-sm px-4 py-1.5">
                 {rule.techStack}
               </Badge>
-              <div className="flex items-center  px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md">
-                <span className="text-xs font-medium text-gray-600">
+              <div className="glass-panel flex items-center px-4 py-2 rounded-lg border border-white/40 shadow-md">
+                <Calendar className="h-4 w-4 mr-2 text-foreground/60" />
+                <span className="text-sm font-bold text-foreground/70">
                   {uiLabels.date}
                 </span>
               </div>
             </div>
 
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tight leading-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
               {showOriginal ? rule.title : translatedTitle}
             </h1>
 
             {(rule.description || translatedDescription) && (
-              <p className="text-lg text-gray-600 mb-6">
+              <p className="text-lg md:text-xl text-foreground/60 font-medium leading-relaxed tracking-wide">
                 {showOriginal ? rule.description : translatedDescription}
               </p>
             )}
 
             {(rule.tags || translatedTags).length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="flex flex-wrap gap-2">
                 {(showOriginal ? rule.tags : translatedTags).map(
                   (tag: any, index: any) => (
-                    <Badge key={index} variant="outline">
+                    <Badge key={index} variant="outline" className="font-semibold border-foreground/20 text-foreground/70 px-3 py-1">
                       {tag}
                     </Badge>
                   )
@@ -591,14 +603,14 @@ export default function RuleDetailPage() {
               </div>
             )}
 
-            <div className="flex items-center gap-6 text-sm text-muted-foreground mb-6">
-              <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-4 text-sm font-semibold text-foreground/60">
+              <div className="flex items-center gap-2 glass-panel px-3 py-2 rounded-lg border border-white/40">
                 <Eye className="h-4 w-4" />
                 <span>
                   {rule.viewCount} {uiLabels.views}
                 </span>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2 glass-panel px-3 py-2 rounded-lg border border-white/40">
                 <CopyIcon className="h-4 w-4" />
                 <span>
                   {rule.copyCount} {uiLabels.copies}
@@ -610,11 +622,11 @@ export default function RuleDetailPage() {
                   size="sm"
                   onClick={handleLike}
                   disabled={isLiking}
-                  className={`text-red-600 hover:text-red-700 hover:bg-red-50 ${liked ? "bg-red-50" : ""}`}
+                  className={`text-red-500 hover:text-red-600 hover:bg-red-500/10 font-bold transition-all duration-200 ${liked ? "bg-red-500/10" : ""}`}
                   title="Like this rule"
                 >
                   <Heart
-                    className={`h-4 w-4 mr-1 ${liked ? "fill-red-600 text-red-600" : ""}`}
+                    className={`h-4 w-4 mr-2 transition-transform duration-200 ${liked ? "fill-red-500 text-red-500 scale-110" : ""}`}
                   />
                   <span>
                     {likeCount} {uiLabels.likes}
@@ -625,96 +637,65 @@ export default function RuleDetailPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-red-500 hover:text-red-600 hover:bg-red-500/10 font-bold transition-all duration-200"
                     title="Like this rule"
                   >
-                    <Heart className="h-4 w-4 mr-1" />
+                    <Heart className="h-4 w-4 mr-2" />
                     <span>
                       {likeCount} {uiLabels.likes}
                     </span>
                   </Button>
                 </SignInButton>
               )}
-              {/* {rule._count && (
-                <div className="flex items-center gap-1">
-                  <MessageCircle className="h-4 w-4" />
-                  <span>
-                    {rule._count.comments} {uiLabels.comments}
-                  </span>
-                </div>
-              )} */}
             </div>
 
             {/* CLI Command */}
-            <div className="mt-4 flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-md border border-gray-200 overflow-hidden">
-              <code className="flex-1 text-xs text-gray-700 font-mono whitespace-nowrap overflow-x-auto scrollbar-hide">
+            <div className="glass-panel flex items-center gap-2 px-4 py-3 rounded-xl border border-white/40 shadow-lg overflow-hidden">
+              <code className="flex-1 text-sm text-foreground/70 font-mono whitespace-nowrap overflow-x-auto scrollbar-hide font-semibold">
                 {cliCommand}
               </code>
               <button
                 onClick={handleCliCopy}
-                className="shrink-0 p-1.5 hover:bg-gray-200 rounded transition-colors"
+                className="copy-btn-scale shrink-0 p-2 hover:bg-primary/20 rounded-lg transition-all duration-200"
                 aria-label="Copy command"
               >
                 {cliCopied ? (
-                  <Check className="h-4 w-4 text-green-600" />
+                  <Check className="h-5 w-5 text-green-600 animate-in zoom-in duration-200" />
                 ) : (
-                  <CopyIcon className="h-4 w-4 text-gray-600" />
+                  <CopyIcon className="h-5 w-5 text-foreground/60" />
                 )}
               </button>
             </div>
 
-            <Separator className="mb-6" />
+            <Separator className="bg-foreground/10" />
 
-            {/* Author Info */}
-            <div className="flex items-center justify-between">
-              {/* <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={rule.user?.image || undefined} />
-                  <AvatarFallback>
-                    {getInitials(
-                      rule.user?.name || null,
-                      rule.user?.email || "U"
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {uiLabels.userName || rule.user?.name || rule.user?.email}
-                  </p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    <span>{uiLabels.date}</span>
-                  </div>
-                </div>
-              </div> */}
-
-              <div className="flex items-center gap-2 w-full justify-end">
-                {isLoaded && !isSignedIn ? (
-                  <SignInButton mode="modal">
-                    <Button variant="outline" className="gap-2">
-                      <GitBranch className="h-4 w-4" />
-                      {uiLabels.createPR}
-                    </Button>
-                  </SignInButton>
-                ) : (
-                  <Button
-                    onClick={handleCreatePRClick}
-                    variant="outline"
-                    className="gap-2"
-                  >
+            {/* GitHub PR Button */}
+            <div className="flex items-center justify-end gap-2">
+              {isLoaded && !isSignedIn ? (
+                <SignInButton mode="modal">
+                  <Button variant="outline" className="gap-2 border-foreground/20 font-bold hover:bg-secondary/10 shadow-md">
                     <GitBranch className="h-4 w-4" />
                     {uiLabels.createPR}
                   </Button>
-                )}
-              </div>
+                </SignInButton>
+              ) : (
+                <Button
+                  onClick={handleCreatePRClick}
+                  variant="outline"
+                  className="gap-2 border-foreground/20 font-bold hover:bg-secondary/10 shadow-md"
+                >
+                  <GitBranch className="h-4 w-4" />
+                  {uiLabels.createPR}
+                </Button>
+              )}
             </div>
           </CardHeader>
 
           <CardContent>
             {/* Rule Content */}
-            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-gray-700 uppercase">
+            <div className="glass-panel rounded-xl p-6 border border-white/40 shadow-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-black text-foreground/70 uppercase tracking-wider">
                   {uiLabels.cursorRule}
                 </h2>
                 <CopyButton
@@ -730,7 +711,7 @@ export default function RuleDetailPage() {
                   onCopyCountUpdate={handleCopy}
                 />
               </div>
-              <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono overflow-x-auto">
+              <pre className="text-sm text-foreground/80 whitespace-pre-wrap font-mono overflow-x-auto font-semibold leading-relaxed">
                 {showOriginal
                   ? rule.content
                   : translatedContent || rule.content}

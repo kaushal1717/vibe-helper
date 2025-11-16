@@ -79,23 +79,30 @@ export function CopyButton({
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={handleCopy}
-      className="text-blue-600 hover:text-blue-700"
-    >
-      {copied ? (
-        <>
-          <Check className="h-4 w-4 mr-1" />
-          {copiedLabel}
-        </>
-      ) : (
-        <>
-          <Copy className="h-4 w-4 mr-1" />
-          {copyLabel}
-        </>
+    <div className="relative">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleCopy}
+        className="copy-btn-scale text-primary hover:text-accent hover:bg-accent/10 transition-all duration-200 font-medium"
+      >
+        {copied ? (
+          <>
+            <Check className="h-4 w-4 mr-1 animate-in zoom-in duration-200" />
+            {copiedLabel}
+          </>
+        ) : (
+          <>
+            <Copy className="h-4 w-4 mr-1" />
+            {copyLabel}
+          </>
+        )}
+      </Button>
+      {copied && (
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 glass-panel px-3 py-1.5 rounded-lg shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-200 pointer-events-none">
+          <span className="text-xs font-semibold text-foreground whitespace-nowrap">Copied!</span>
+        </div>
       )}
-    </Button>
+    </div>
   );
 }

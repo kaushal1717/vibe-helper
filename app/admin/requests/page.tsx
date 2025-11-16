@@ -66,37 +66,37 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
   const changesRequestedCount = await prisma.ruleRequest.count({ where: { status: 'CHANGES_REQUESTED' } })
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Rule Requests</h1>
-          <p className="text-gray-600 mt-2">Review and manage cursor rule requests from users</p>
+        <div className="mb-12 slide-up">
+          <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight">Rule Requests</h1>
+          <p className="text-lg font-medium text-foreground/60 tracking-wide">Review and manage cursor rule requests from users</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <Card className="glass-panel border-[1.5px] border-white/60 shadow-lg slide-up hover-glow">
             <CardHeader className="pb-3">
-              <CardDescription>Pending</CardDescription>
-              <CardTitle className="text-3xl">{pendingCount}</CardTitle>
+              <CardDescription className="text-xs font-bold uppercase tracking-wider text-foreground/50">Pending</CardDescription>
+              <CardTitle className="text-4xl font-black bg-gradient-to-br from-yellow-500 to-yellow-600 bg-clip-text text-transparent">{pendingCount}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="glass-panel border-[1.5px] border-white/60 shadow-lg slide-up hover-glow">
             <CardHeader className="pb-3">
-              <CardDescription>Changes Requested</CardDescription>
-              <CardTitle className="text-3xl">{changesRequestedCount}</CardTitle>
+              <CardDescription className="text-xs font-bold uppercase tracking-wider text-foreground/50">Changes Requested</CardDescription>
+              <CardTitle className="text-4xl font-black bg-gradient-to-br from-blue-500 to-blue-600 bg-clip-text text-transparent">{changesRequestedCount}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="glass-panel border-[1.5px] border-white/60 shadow-lg slide-up hover-glow">
             <CardHeader className="pb-3">
-              <CardDescription>Approved</CardDescription>
-              <CardTitle className="text-3xl">{approvedCount}</CardTitle>
+              <CardDescription className="text-xs font-bold uppercase tracking-wider text-foreground/50">Approved</CardDescription>
+              <CardTitle className="text-4xl font-black bg-gradient-to-br from-secondary to-secondary/60 bg-clip-text text-transparent">{approvedCount}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="glass-panel border-[1.5px] border-white/60 shadow-lg slide-up hover-glow">
             <CardHeader className="pb-3">
-              <CardDescription>Rejected</CardDescription>
-              <CardTitle className="text-3xl">{rejectedCount}</CardTitle>
+              <CardDescription className="text-xs font-bold uppercase tracking-wider text-foreground/50">Rejected</CardDescription>
+              <CardTitle className="text-4xl font-black bg-gradient-to-br from-red-500 to-red-600 bg-clip-text text-transparent">{rejectedCount}</CardTitle>
             </CardHeader>
           </Card>
         </div>
@@ -106,53 +106,53 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
 
         {/* Requests List */}
         {requests.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No requests found</h3>
-              <p className="text-gray-600">No requests match your current filters.</p>
+          <Card className="glass-panel border-[1.5px] border-white/60 shadow-xl">
+            <CardContent className="py-16 text-center">
+              <h3 className="text-2xl font-black text-foreground mb-3">No requests found</h3>
+              <p className="text-foreground/60 font-medium">No requests match your current filters.</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {requests.map((request) => (
-              <Card key={request.id} className="hover:shadow-md transition-shadow">
+              <Card key={request.id} className="glass-panel hover-glow transition-all duration-300 border-[1.5px] border-white/60 shadow-xl slide-up overflow-hidden">
                 <CardHeader>
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <CardTitle className="text-xl">{request.title}</CardTitle>
-                        <Badge className={getStatusColor(request.status)}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <CardTitle className="text-2xl font-black tracking-tight">{request.title}</CardTitle>
+                        <Badge className={`${getStatusColor(request.status)} font-bold text-xs px-3 py-1`}>
                           {formatStatus(request.status)}
                         </Badge>
                       </div>
-                      <CardDescription className="flex items-center gap-4">
-                        <span className="font-medium text-primary">{request.techStack}</span>
-                        <span>•</span>
+                      <CardDescription className="flex items-center gap-3 font-medium text-sm">
+                        <span className="font-bold text-secondary">{request.techStack}</span>
+                        <span className="text-foreground/30">•</span>
                         <span>Submitted {moment(request.createdAt).fromNow()}</span>
-                        <span>•</span>
-                        <span className="font-mono text-xs">{request.userId.slice(0, 8)}...</span>
+                        <span className="text-foreground/30">•</span>
+                        <span className="font-mono text-xs bg-foreground/5 px-2 py-1 rounded">{request.userId.slice(0, 8)}...</span>
                       </CardDescription>
                     </div>
-                    <Button asChild>
+                    <Button asChild className="btn-lift bg-secondary hover:bg-mint-hover font-bold">
                       <Link href={`/admin/requests/${request.id}`}>Review</Link>
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4">
                   {request.description && (
-                    <p className="text-gray-700">{request.description}</p>
+                    <p className="text-foreground/70 font-medium tracking-wide">{request.description}</p>
                   )}
 
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="text-sm text-gray-600 whitespace-pre-wrap line-clamp-2">
+                  <div className="bg-foreground/5 rounded-xl p-4 border border-foreground/10">
+                    <p className="text-sm text-foreground/80 whitespace-pre-wrap line-clamp-2 font-medium">
                       {request.requestText}
                     </p>
                   </div>
 
                   {request.adminResponse && (
-                    <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                      <p className="text-sm text-blue-800">
-                        <span className="font-semibold">Response: </span>
+                    <div className="glass-panel rounded-xl p-4 border-[1.5px] border-blue-500/30 bg-blue-50/50">
+                      <p className="text-sm text-foreground/90 font-semibold">
+                        <span className="font-black text-blue-600">Response: </span>
                         {request.adminResponse}
                       </p>
                     </div>
