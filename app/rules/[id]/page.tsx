@@ -78,6 +78,7 @@ export default function RuleDetailPage() {
       "Copied",
       formattedDate,
       rule.user?.name || rule.user?.email || "",
+      "Create PR on GitHub",
     ];
 
     const response = await fetch("/api/translate/batch", {
@@ -126,6 +127,7 @@ export default function RuleDetailPage() {
           rule.user?.name ||
           rule.user?.email ||
           "",
+        createPR: translatedTexts[baseIndex + 13] || "Create PR on GitHub",
       },
     };
   };
@@ -187,6 +189,7 @@ export default function RuleDetailPage() {
         copied: "Copied",
         date: originalDate,
         userName: rule?.user?.name || rule?.user?.email || "",
+        createPR: "Create PR on GitHub",
       }
     : pageTranslationData?.uiLabels || {
         views: "views",
@@ -201,6 +204,7 @@ export default function RuleDetailPage() {
         copied: "Copied",
         date: originalDate,
         userName: rule?.user?.name || rule?.user?.email || "",
+        createPR: "Create PR on GitHub",
       };
 
   const [showPRDialog, setShowPRDialog] = useState(false);
@@ -275,19 +279,10 @@ export default function RuleDetailPage() {
   };
 
   const handleCopy = (newCopyCount?: number) => {
-    // Update copy count in UI
     if (newCopyCount !== undefined) {
       setCopyCount(newCopyCount);
       setRule((prev) => (prev ? { ...prev, copyCount: newCopyCount } : null));
     }
-  };
-
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
   };
 
   const getInitials = (name: string | null, email: string) => {
@@ -328,44 +323,44 @@ export default function RuleDetailPage() {
   };
 
   const languages = [
-    { code: "gu", name: "Gujarati" },
-    { code: "hi", name: "Hindi" },
+    { code: "ar", name: "Arabic" },
+    { code: "zh", name: "Chinese" },
+    { code: "cs", name: "Czech" },
+    { code: "da", name: "Danish" },
+    { code: "nl", name: "Dutch" },
     { code: "en", name: "English" },
-    { code: "mr", name: "Marathi" },
-    { code: "ta", name: "Tamil" },
-    { code: "te", name: "Telugu" },
-    { code: "kn", name: "Kannada" },
-    { code: "ml", name: "Malayalam" },
-    { code: "ur", name: "Urdu" },
-    { code: "es", name: "Spanish" },
+    { code: "fi", name: "Finnish" },
     { code: "fr", name: "French" },
     { code: "de", name: "German" },
+    { code: "gu", name: "Gujarati" },
+    { code: "hi", name: "Hindi" },
     { code: "it", name: "Italian" },
+    { code: "ja", name: "Japanese" },
+    { code: "kn", name: "Kannada" },
+    { code: "ko", name: "Korean" },
+    { code: "ml", name: "Malayalam" },
+    { code: "mr", name: "Marathi" },
+    { code: "no", name: "Norwegian" },
+    { code: "pl", name: "Polish" },
     { code: "pt", name: "Portuguese" },
     { code: "ru", name: "Russian" },
-    { code: "ja", name: "Japanese" },
-    { code: "ko", name: "Korean" },
-    { code: "zh", name: "Chinese" },
-    { code: "ar", name: "Arabic" },
-    { code: "nl", name: "Dutch" },
-    { code: "pl", name: "Polish" },
-    { code: "tr", name: "Turkish" },
+    { code: "sd", name: "Sindhi" },
+    { code: "es", name: "Spanish" },
     { code: "sv", name: "Swedish" },
-    { code: "da", name: "Danish" },
-    { code: "fi", name: "Finnish" },
-    { code: "no", name: "Norwegian" },
-    { code: "cs", name: "Czech" },
+    { code: "ta", name: "Tamil" },
+    { code: "te", name: "Telugu" },
+    { code: "tr", name: "Turkish" },
     { code: "uk", name: "Ukrainian" },
+    { code: "ur", name: "Urdu" },
   ];
   const handleCreatePRClick = () => {
     if (!isLoaded) {
-      return; // Wait for auth to load
+      return;
     }
 
     if (isSignedIn) {
       setShowPRDialog(true);
     }
-    // If not signed in, SignInButton will handle the modal
   };
 
   const cliCommand = `npx cursorize@latest add ${ruleId}`;
@@ -454,9 +449,16 @@ export default function RuleDetailPage() {
 
         <Card>
           <CardHeader>
-            <Badge variant="secondary" className="w-fit mb-4">
-              {rule.techStack}
-            </Badge>
+            <div className="flex items-center justify-between mb-4">
+              <Badge variant="secondary" className="w-fit">
+                {rule.techStack}
+              </Badge>
+              <div className="flex items-center  px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md">
+                <span className="text-xs font-medium text-gray-600">
+                  {uiLabels.date}
+                </span>
+              </div>
+            </div>
 
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
               {showOriginal ? rule.title : translatedTitle}
@@ -501,12 +503,12 @@ export default function RuleDetailPage() {
                       {rule._count.likes} {uiLabels.likes}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  {/* <div className="flex items-center gap-1">
                     <MessageCircle className="h-4 w-4" />
                     <span>
                       {rule._count.comments} {uiLabels.comments}
                     </span>
-                  </div>
+                  </div> */}
                 </>
               )}
             </div>
@@ -533,7 +535,7 @@ export default function RuleDetailPage() {
 
             {/* Author Info */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              {/* <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={rule.user?.image || undefined} />
                   <AvatarFallback>
@@ -552,15 +554,14 @@ export default function RuleDetailPage() {
                     <span>{uiLabels.date}</span>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
-              <div className="flex items-center gap-2">
-                <CopyButton content={rule.content} onCopy={handleCopy} />
+              <div className="flex items-center gap-2 w-full justify-end">
                 {isLoaded && !isSignedIn ? (
                   <SignInButton mode="modal">
                     <Button variant="outline" className="gap-2">
                       <GitBranch className="h-4 w-4" />
-                      Create PR on GitHub
+                      {uiLabels.createPR}
                     </Button>
                   </SignInButton>
                 ) : (
@@ -570,7 +571,7 @@ export default function RuleDetailPage() {
                     className="gap-2"
                   >
                     <GitBranch className="h-4 w-4" />
-                    Create PR on GitHub
+                    {uiLabels.createPR}
                   </Button>
                 )}
               </div>
