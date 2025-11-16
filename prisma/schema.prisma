@@ -26,6 +26,8 @@ model User {
   likes         Like[]
   comments      Comment[]
   favorites     Favorite[]
+  views         View[]
+  copies        Copy[]
 }
 
 model Session {
@@ -78,6 +80,8 @@ model CursorRule {
   likes       Like[]
   comments    Comment[]
   favorites   Favorite[]
+  views       View[]
+  copies      Copy[]
 
   @@index([techStack])
   @@index([userId])
@@ -121,4 +125,32 @@ model Favorite {
   @@unique([userId, ruleId])
   @@index([ruleId])
   @@index([userId])
+}
+
+model View {
+  id        String   @id @default(cuid()) @map("_id")
+  userId    String?
+  ruleId    String
+  user      User?    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  rule      CursorRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  sessionId String?  // For non-logged users, track by session/localStorage identifier
+  createdAt DateTime @default(now())
+
+  @@index([ruleId])
+  @@index([userId])
+  @@index([sessionId])
+}
+
+model Copy {
+  id        String   @id @default(cuid()) @map("_id")
+  userId    String?
+  ruleId    String
+  user      User?    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  rule      CursorRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  sessionId String?  // For non-logged users, track by session/localStorage identifier
+  createdAt DateTime @default(now())
+
+  @@index([ruleId])
+  @@index([userId])
+  @@index([sessionId])
 }

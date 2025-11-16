@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useUser, SignInButton } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import type { CursorRule } from "@/types";
 import { toast } from "sonner";
+import { markRuleAsViewed, hasViewedRule } from "@/lib/utils/localStorage"
+import { getSessionId } from "@/lib/utils/session"
 import { RepoSelectorDialog } from "@/components/github/repo-selector-dialog";
 
 export default function RuleDetailPage() {
@@ -35,6 +37,16 @@ export default function RuleDetailPage() {
   const [error, setError] = useState("");
   const [showPRDialog, setShowPRDialog] = useState(false);
   const [cliCopied, setCliCopied] = useState(false);
+  const [viewCount, setViewCount] = useState(0)
+  const [copyCount, setCopyCount] = useState(0)
+  const viewTrackedRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    // Reset tracking when ruleId changes
+    viewTrackedRef.current = null
+    fetchRule()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ruleId])
 
   useEffect(() => {
     fetchRule();
@@ -50,13 +62,44 @@ export default function RuleDetailPage() {
         return;
       }
 
-      const data = await response.json();
-      setRule(data);
+      const data = await response.json()
+      setRule(data)
+      setViewCount(data.viewCount || 0)
+      setCopyCount(data.copyCount || 0)
 
-      // Increment view count
-      await fetch(`/api/rules/${ruleId}/view`, {
-        method: "POST",
-      });
+      // Track view only once per ruleId (prevent double tracking in React Strict Mode)
+      if (viewTrackedRef.current !== ruleId) {
+        viewTrackedRef.current = ruleId
+        
+        // Track view count with localStorage
+        const isNewView = !hasViewedRule(ruleId)
+        if (isNewView) {
+          markRuleAsViewed(ruleId)
+        }
+        
+        // Track view on server
+        try {
+          const sessionId = getSessionId()
+          const viewResponse = await fetch(`/api/rules/${ruleId}/view`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ sessionId }),
+          })
+
+          // Update view count in UI with latest from server
+          if (viewResponse.ok) {
+            const viewData = await viewResponse.json()
+            if (viewData.viewCount !== undefined) {
+              setViewCount(viewData.viewCount)
+              setRule((prev) => prev ? { ...prev, viewCount: viewData.viewCount } : null)
+            }
+          }
+        } catch (error) {
+          console.error("Error tracking view:", error)
+        }
+      }
     } catch (error) {
       console.error("Error fetching rule:", error);
       setError("Failed to load rule");
@@ -65,19 +108,11 @@ export default function RuleDetailPage() {
     }
   };
 
-  const handleCopy = async () => {
-    if (!rule) return;
-
-    try {
-      await fetch(`/api/rules/${ruleId}/copy`, {
-        method: "POST",
-      });
-      // Update local copy count
-      setRule((prev) =>
-        prev ? { ...prev, copyCount: prev.copyCount + 1 } : null
-      );
-    } catch (error) {
-      console.error("Error incrementing copy count:", error);
+  const handleCopy = (newCopyCount?: number) => {
+    // Update copy count in UI
+    if (newCopyCount !== undefined) {
+      setCopyCount(newCopyCount)
+      setRule((prev) => prev ? { ...prev, copyCount: newCopyCount } : null)
     }
   };
 
@@ -195,11 +230,11 @@ export default function RuleDetailPage() {
             <div className="flex items-center gap-6 text-sm text-muted-foreground mb-6">
               <div className="flex items-center gap-1">
                 <Eye className="h-4 w-4" />
-                <span>{rule.viewCount} views</span>
+                <span>{viewCount} views</span>
               </div>
               <div className="flex items-center gap-1">
                 <CopyIcon className="h-4 w-4" />
-                <span>{rule.copyCount} copies</span>
+                <span>{copyCount} copies</span>
               </div>
               {rule._count && (
                 <>
@@ -288,7 +323,12 @@ export default function RuleDetailPage() {
                 <h2 className="text-sm font-semibold text-gray-700 uppercase">
                   Cursor Rule
                 </h2>
-                <CopyButton content={rule.content} onCopy={handleCopy} />
+                <CopyButton 
+                  content={rule.content} 
+                  onCopy={handleCopy} 
+                  ruleId={rule.id}
+                  onCopyCountUpdate={handleCopy}
+                />
               </div>
               <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono overflow-x-auto">
                 {rule.content}

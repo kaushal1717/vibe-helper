@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 // GET all public cursor rules
 export async function GET(req: NextRequest) {
   try {
+    const { userId } = await auth()
     const { searchParams } = new URL(req.url)
     const techStack = searchParams.get("techStack")
 
@@ -26,6 +27,8 @@ export async function GET(req: NextRequest) {
             likes: true,
             comments: true,
             favorites: true,
+            views: true,
+            copies: true,
           },
         },
       },
@@ -34,7 +37,36 @@ export async function GET(req: NextRequest) {
       },
     })
 
-    return NextResponse.json(rules)
+    // If user is logged in, check which rules they've liked
+    if (userId) {
+      const ruleIds = rules.map((rule) => rule.id)
+
+      const userLikes = await prisma.like.findMany({
+        where: {
+          userId,
+          ruleId: { in: ruleIds },
+        },
+        select: { ruleId: true },
+      })
+
+      const likedRuleIds = new Set(userLikes.map((like) => like.ruleId))
+
+      // Add user-specific data to each rule
+      const rulesWithUserData = rules.map((rule) => ({
+        ...rule,
+        hasLiked: likedRuleIds.has(rule.id),
+      }))
+
+      return NextResponse.json(rulesWithUserData)
+    }
+
+    // If user is not logged in, return rules without user-specific data
+    const rulesWithoutUserData = rules.map((rule) => ({
+      ...rule,
+      hasLiked: false,
+    }))
+
+    return NextResponse.json(rulesWithoutUserData)
   } catch (error) {
     console.error("Error fetching rules:", error)
     return NextResponse.json(
@@ -98,6 +130,8 @@ export async function POST(req: NextRequest) {
             likes: true,
             comments: true,
             favorites: true,
+            views: true,
+            copies: true,
           },
         },
       },
