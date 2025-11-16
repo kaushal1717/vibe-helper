@@ -7,11 +7,14 @@ import { LoadingSpinner } from "@/components/shared/loading-spinner"
 import { EmptyState } from "@/components/shared/empty-state"
 import type { CursorRule } from "@/types"
 
+type SortOption = "newest" | "oldest" | "likes" | "copies" | "views"
+
 export default function Home() {
   const [rules, setRules] = useState<CursorRule[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [selectedTechStack, setSelectedTechStack] = useState<string>("")
+  const [sortBy, setSortBy] = useState<SortOption>("newest")
 
   useEffect(() => {
     fetchRules()
@@ -29,22 +32,50 @@ export default function Home() {
     }
   }
 
-  const handleCopyRule = async (ruleId: string) => {
-    try {
-      await fetch(`/api/rules/${ruleId}/copy`, {
-        method: "POST",
-      })
-      // Optionally update the local copy count
+  const handleCopyRule = (ruleId: string, copyCount?: number) => {
+    // Update copy count in UI
+    if (copyCount !== undefined) {
       setRules((prevRules) =>
         prevRules.map((rule) =>
           rule.id === ruleId
-            ? { ...rule, copyCount: rule.copyCount + 1 }
+            ? { ...rule, copyCount }
             : rule
         )
       )
-    } catch (error) {
-      console.error("Error incrementing copy count:", error)
     }
+  }
+
+  const handleCopyCountUpdate = (ruleId: string, copyCount: number) => {
+    setRules((prevRules) =>
+      prevRules.map((rule) =>
+        rule.id === ruleId
+          ? { ...rule, copyCount }
+          : rule
+      )
+    )
+  }
+
+  const handleLikeUpdate = (ruleId: string, liked: boolean, likeCount: number) => {
+    setRules((prevRules) =>
+      prevRules.map((rule) =>
+        rule.id === ruleId
+          ? {
+              ...rule,
+              hasLiked: liked,
+              _count: rule._count
+                ? {
+                    ...rule._count,
+                    likes: likeCount,
+                  }
+                : {
+                    likes: likeCount,
+                    comments: 0,
+                    favorites: 0,
+                  },
+            }
+          : rule
+      )
+    )
   }
 
   // Get unique tech stacks from rules
@@ -53,9 +84,9 @@ export default function Home() {
     [rules]
   )
 
-  // Filter rules based on search and tech stack
-  const filteredRules = useMemo(() => {
-    return rules.filter((rule) => {
+  // Filter and sort rules
+  const filteredAndSortedRules = useMemo(() => {
+    let filtered = rules.filter((rule) => {
       const matchesSearch =
         search === "" ||
         rule.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -68,7 +99,27 @@ export default function Home() {
 
       return matchesSearch && matchesTechStack
     })
-  }, [rules, search, selectedTechStack])
+
+    // Sort rules
+    filtered = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        case "oldest":
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        case "likes":
+          return (b._count?.likes || 0) - (a._count?.likes || 0)
+        case "copies":
+          return b.copyCount - a.copyCount
+        case "views":
+          return b.viewCount - a.viewCount
+        default:
+          return 0
+      }
+    })
+
+    return filtered
+  }, [rules, search, selectedTechStack, sortBy])
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -120,13 +171,15 @@ export default function Home() {
             techStack={selectedTechStack}
             onTechStackChange={setSelectedTechStack}
             techStacks={techStacks}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
           />
         )}
 
         {/* Rules Grid */}
         {loading ? (
           <LoadingSpinner />
-        ) : filteredRules.length === 0 ? (
+        ) : filteredAndSortedRules.length === 0 ? (
           <EmptyState
             title={search || selectedTechStack ? "No matching rules found" : "No cursor rules found"}
             description={
@@ -137,8 +190,14 @@ export default function Home() {
           />
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredRules.map((rule) => (
-              <RuleCard key={rule.id} rule={rule} onCopy={handleCopyRule} />
+            {filteredAndSortedRules.map((rule) => (
+              <RuleCard
+                key={rule.id}
+                rule={rule}
+                onCopy={handleCopyRule}
+                onLikeUpdate={handleLikeUpdate}
+                onCopyCountUpdate={handleCopyCountUpdate}
+              />
             ))}
           </div>
         )}

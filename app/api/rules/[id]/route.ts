@@ -16,6 +16,8 @@ export async function GET(
             likes: true,
             comments: true,
             favorites: true,
+            views: true,
+            copies: true,
           },
         },
       },
