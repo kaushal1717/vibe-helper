@@ -1,29 +1,36 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Copy, Check } from "lucide-react"
-import { toast } from "sonner"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 
 interface CopyButtonProps {
-  content: string
-  onCopy?: () => void
+  content: string;
+  onCopy?: () => void;
+  copyLabel?: string;
+  copiedLabel?: string;
 }
 
-export function CopyButton({ content, onCopy }: CopyButtonProps) {
-  const [copied, setCopied] = useState(false)
+export function CopyButton({
+  content,
+  onCopy,
+  copyLabel = "Copy",
+  copiedLabel = "Copied",
+}: CopyButtonProps) {
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(content)
-      setCopied(true)
-      toast.success("Copied to clipboard!")
-      onCopy?.()
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      toast.success("Copied to clipboard!");
+      onCopy?.();
+      setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      toast.error("Failed to copy")
+      toast.error("Failed to copy");
     }
-  }
+  };
 
   return (
     <Button
@@ -35,14 +42,14 @@ export function CopyButton({ content, onCopy }: CopyButtonProps) {
       {copied ? (
         <>
           <Check className="h-4 w-4 mr-1" />
-          Copied
+          {copiedLabel}
         </>
       ) : (
         <>
           <Copy className="h-4 w-4 mr-1" />
-          Copy
+          {copyLabel}
         </>
       )}
     </Button>
-  )
+  );
 }

@@ -44,16 +44,42 @@ export default function RuleDetailPage() {
   );
   const [shouldFetchTranslation, setShouldFetchTranslation] = useState(false);
 
-  const translateFetcher = async (url: string) => {
+  const batchTranslateFetcher = async (url: string) => {
     if (!rule || !translatedLanguage) return null;
 
-    const response = await fetch("/api/translate", {
+    const formattedDate = new Date(rule.createdAt).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    const textsToTranslate = [
+      rule.title || "",
+      rule.description || "",
+      ...(rule.tags || []),
+      rule.content || "",
+
+      "views",
+      "copies",
+      "likes",
+      "comments",
+      "Cursor Rule",
+      "Back to Rules",
+      "Show Original",
+      "Translate",
+      "Copy",
+      "Copied",
+      formattedDate,
+      rule.user?.name || rule.user?.email || "",
+    ];
+
+    const response = await fetch("/api/translate/batch", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        text: rule.content,
+        texts: textsToTranslate,
         sourceLocale: "en",
         targetLocale: translatedLanguage,
         ruleId,
@@ -65,39 +91,110 @@ export default function RuleDetailPage() {
       throw new Error(error.error || "Translation failed");
     }
 
-    return response.json();
+    const data = await response.json();
+    const translatedTexts = data.translatedTexts || [];
+
+    const tagCount = rule.tags?.length || 0;
+    const baseIndex = 2 + tagCount;
+
+    return {
+      title: translatedTexts[0] || rule.title,
+      description: translatedTexts[1] || rule.description,
+      tags: translatedTexts.slice(2, 2 + tagCount) || rule.tags,
+      content: translatedTexts[baseIndex] || rule.content,
+      uiLabels: {
+        views: translatedTexts[baseIndex + 1] || "views",
+        copies: translatedTexts[baseIndex + 2] || "copies",
+        likes: translatedTexts[baseIndex + 3] || "likes",
+        comments: translatedTexts[baseIndex + 4] || "comments",
+        cursorRule: translatedTexts[baseIndex + 5] || "Cursor Rule",
+        backToRules: translatedTexts[baseIndex + 6] || "Back to Rules",
+        showOriginal: translatedTexts[baseIndex + 7] || "Show Original",
+        translate: translatedTexts[baseIndex + 8] || "Translate",
+        copy: translatedTexts[baseIndex + 9] || "Copy",
+        copied: translatedTexts[baseIndex + 10] || "Copied",
+        date: translatedTexts[baseIndex + 11] || formattedDate,
+        userName:
+          translatedTexts[baseIndex + 12] ||
+          rule.user?.name ||
+          rule.user?.email ||
+          "",
+      },
+    };
   };
 
   const translationKey =
     rule && translatedLanguage && shouldFetchTranslation
-      ? `translation_${ruleId}_${translatedLanguage}`
+      ? `page_translation_${ruleId}_${translatedLanguage}`
       : null;
 
   const {
-    data: translationData,
+    data: pageTranslationData,
     error: translationError,
     isLoading: isTranslating,
     mutate: mutateTranslation,
-  } = useSWR(translationKey, translateFetcher, {
+  } = useSWR(translationKey, batchTranslateFetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 60000,
     keepPreviousData: true,
     revalidateIfStale: false,
     onSuccess: (data) => {
-      if (data?.translatedText) {
+      if (data) {
         setShowOriginal(false);
-        toast.success("Translation loaded!");
+        toast.success("Page translated successfully!");
       }
     },
     onError: (error) => {
       toast.error(
-        error instanceof Error ? error.message : "Failed to translate rule"
+        error instanceof Error ? error.message : "Failed to translate page"
       );
     },
   });
 
-  const translatedContent = translationData?.translatedText || null;
+  const translatedTitle = pageTranslationData?.title || rule?.title || "";
+  const translatedDescription =
+    pageTranslationData?.description || rule?.description || "";
+  const translatedTags = pageTranslationData?.tags || rule?.tags || [];
+  const translatedContent = pageTranslationData?.content || rule?.content || "";
+
+  const originalDate = rule
+    ? new Date(rule.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "";
+
+  const uiLabels = showOriginal
+    ? {
+        views: "views",
+        copies: "copies",
+        likes: "likes",
+        comments: "comments",
+        cursorRule: "Cursor Rule",
+        backToRules: "Back to Rules",
+        showOriginal: "Show Original",
+        translate: "Translate",
+        copy: "Copy",
+        copied: "Copied",
+        date: originalDate,
+        userName: rule?.user?.name || rule?.user?.email || "",
+      }
+    : pageTranslationData?.uiLabels || {
+        views: "views",
+        copies: "copies",
+        likes: "likes",
+        comments: "comments",
+        cursorRule: "Cursor Rule",
+        backToRules: "Back to Rules",
+        showOriginal: "Show Original",
+        translate: "Translate",
+        copy: "Copy",
+        copied: "Copied",
+        date: originalDate,
+        userName: rule?.user?.name || rule?.user?.email || "",
+      };
 
   useEffect(() => {
     fetchRule();
@@ -116,7 +213,6 @@ export default function RuleDetailPage() {
       const data = await response.json();
       setRule(data);
 
-      // Increment view count
       await fetch(`/api/rules/${ruleId}/view`, {
         method: "POST",
       });
@@ -135,7 +231,6 @@ export default function RuleDetailPage() {
       await fetch(`/api/rules/${ruleId}/copy`, {
         method: "POST",
       });
-      // Update local copy count
       setRule((prev) =>
         prev ? { ...prev, copyCount: prev.copyCount + 1 } : null
       );
@@ -189,8 +284,16 @@ export default function RuleDetailPage() {
     setSelectedLanguage(language);
   };
 
-  // Common languages for translation
   const languages = [
+    { code: "gu", name: "Gujarati" },
+    { code: "hi", name: "Hindi" },
+    { code: "en", name: "English" },
+    { code: "mr", name: "Marathi" },
+    { code: "ta", name: "Tamil" },
+    { code: "te", name: "Telugu" },
+    { code: "kn", name: "Kannada" },
+    { code: "ml", name: "Malayalam" },
+    { code: "ur", name: "Urdu" },
     { code: "es", name: "Spanish" },
     { code: "fr", name: "French" },
     { code: "de", name: "German" },
@@ -201,7 +304,6 @@ export default function RuleDetailPage() {
     { code: "ko", name: "Korean" },
     { code: "zh", name: "Chinese" },
     { code: "ar", name: "Arabic" },
-    { code: "hi", name: "Hindi" },
     { code: "nl", name: "Dutch" },
     { code: "pl", name: "Polish" },
     { code: "tr", name: "Turkish" },
@@ -241,63 +343,103 @@ export default function RuleDetailPage() {
   return (
     <div className="min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
       <div className="max-w-4xl mx-auto">
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => router.push("/")}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Rules
-        </Button>
+        <div className="flex items-center justify-between mb-6">
+          <Button variant="ghost" onClick={() => router.push("/")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {showOriginal ? "Back to Rules" : uiLabels.backToRules}
+          </Button>
+
+          <div className="flex items-center gap-2">
+            <Select
+              value={selectedLanguage}
+              onValueChange={handleLanguageChange}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                {languages.map((lang) => (
+                  <SelectItem key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={handleTranslate}
+              disabled={!selectedLanguage || isTranslating}
+              variant="default"
+              size="default"
+            >
+              <Languages className="h-4 w-4 mr-2" />
+              {isTranslating ? "Translating..." : uiLabels.translate}
+            </Button>
+            {!showOriginal && pageTranslationData && (
+              <Button
+                onClick={handleShowOriginal}
+                variant="outline"
+                size="default"
+              >
+                {uiLabels.showOriginal}
+              </Button>
+            )}
+          </div>
+        </div>
 
         <Card>
           <CardHeader>
-            {/* Tech Stack Badge */}
             <Badge variant="secondary" className="w-fit mb-4">
               {rule.techStack}
             </Badge>
 
-            {/* Title */}
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              {rule.title}
+              {showOriginal ? rule.title : translatedTitle}
             </h1>
 
-            {/* Description */}
-            {rule.description && (
-              <p className="text-lg text-gray-600 mb-6">{rule.description}</p>
+            {(rule.description || translatedDescription) && (
+              <p className="text-lg text-gray-600 mb-6">
+                {showOriginal ? rule.description : translatedDescription}
+              </p>
             )}
 
-            {/* Tags */}
-            {rule.tags && rule.tags.length > 0 && (
+            {(rule.tags || translatedTags).length > 0 && (
               <div className="flex flex-wrap gap-2 mb-6">
-                {rule.tags.map((tag, index) => (
-                  <Badge key={index} variant="outline">
-                    {tag}
-                  </Badge>
-                ))}
+                {(showOriginal ? rule.tags : translatedTags).map(
+                  (tag: any, index: any) => (
+                    <Badge key={index} variant="outline">
+                      {tag}
+                    </Badge>
+                  )
+                )}
               </div>
             )}
 
-            {/* Stats */}
             <div className="flex items-center gap-6 text-sm text-muted-foreground mb-6">
               <div className="flex items-center gap-1">
                 <Eye className="h-4 w-4" />
-                <span>{rule.viewCount} views</span>
+                <span>
+                  {rule.viewCount} {uiLabels.views}
+                </span>
               </div>
               <div className="flex items-center gap-1">
                 <CopyIcon className="h-4 w-4" />
-                <span>{rule.copyCount} copies</span>
+                <span>
+                  {rule.copyCount} {uiLabels.copies}
+                </span>
               </div>
               {rule._count && (
                 <>
                   <div className="flex items-center gap-1">
                     <Heart className="h-4 w-4" />
-                    <span>{rule._count.likes} likes</span>
+                    <span>
+                      {rule._count.likes} {uiLabels.likes}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <MessageCircle className="h-4 w-4" />
-                    <span>{rule._count.comments} comments</span>
+                    <span>
+                      {rule._count.comments} {uiLabels.comments}
+                    </span>
                   </div>
                 </>
               )}
@@ -305,30 +447,25 @@ export default function RuleDetailPage() {
 
             <Separator className="mb-6" />
 
-            {/* Author Info */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={rule.user?.image || undefined} />
-                  <AvatarFallback>
-                    {getInitials(
-                      rule.user?.name || null,
-                      rule.user?.email || "U"
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {rule.user?.name || rule.user?.email}
-                  </p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    <span>{formatDate(rule.createdAt)}</span>
-                  </div>
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={rule.user?.image || undefined} />
+                <AvatarFallback>
+                  {getInitials(
+                    rule.user?.name || null,
+                    rule.user?.email || "U"
+                  )}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  {uiLabels.userName || rule.user?.name || rule.user?.email}
+                </p>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Calendar className="h-3 w-3" />
+                  <span>{uiLabels.date}</span>
                 </div>
               </div>
-
-              <CopyButton content={rule.content} onCopy={handleCopy} />
             </div>
           </CardHeader>
 
@@ -337,53 +474,18 @@ export default function RuleDetailPage() {
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-semibold text-gray-700 uppercase">
-                  Cursor Rule
+                  {uiLabels.cursorRule}
                 </h2>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={selectedLanguage}
-                      onValueChange={handleLanguageChange}
-                    >
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {languages.map((lang) => (
-                          <SelectItem key={lang.code} value={lang.code}>
-                            {lang.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      onClick={handleTranslate}
-                      disabled={!selectedLanguage || isTranslating}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Languages className="h-4 w-4 mr-2" />
-                      {isTranslating ? "Translating..." : "Translate"}
-                    </Button>
-                    {translatedContent && !showOriginal && (
-                      <Button
-                        onClick={handleShowOriginal}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Show Original
-                      </Button>
-                    )}
-                  </div>
-                  <CopyButton
-                    content={
-                      showOriginal
-                        ? rule.content
-                        : translatedContent || rule.content
-                    }
-                    onCopy={handleCopy}
-                  />
-                </div>
+                <CopyButton
+                  content={
+                    showOriginal
+                      ? rule.content
+                      : translatedContent || rule.content
+                  }
+                  onCopy={handleCopy}
+                  copyLabel={uiLabels.copy}
+                  copiedLabel={uiLabels.copied}
+                />
               </div>
               <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono overflow-x-auto">
                 {showOriginal
