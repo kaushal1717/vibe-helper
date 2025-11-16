@@ -18,6 +18,7 @@ import {
   MessageCircle,
   Calendar,
   GitBranch,
+  Check,
 } from "lucide-react";
 import type { CursorRule } from "@/types";
 import { toast } from "sonner";
@@ -33,6 +34,7 @@ export default function RuleDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showPRDialog, setShowPRDialog] = useState(false);
+  const [cliCopied, setCliCopied] = useState(false);
 
   useEffect(() => {
     fetchRule();
@@ -108,6 +110,19 @@ export default function RuleDetailPage() {
       setShowPRDialog(true);
     }
     // If not signed in, SignInButton will handle the modal
+  };
+
+  const cliCommand = `npx cursorize@latest add ${ruleId}`;
+
+  const handleCliCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(cliCommand);
+      setCliCopied(true);
+      toast.success("Command copied to clipboard!");
+      setTimeout(() => setCliCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
   };
 
   if (loading) {
@@ -198,6 +213,24 @@ export default function RuleDetailPage() {
                   </div>
                 </>
               )}
+            </div>
+
+            {/* CLI Command */}
+            <div className="mt-4 flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-md border border-gray-200 overflow-hidden">
+              <code className="flex-1 text-xs text-gray-700 font-mono whitespace-nowrap overflow-x-auto scrollbar-hide">
+                {cliCommand}
+              </code>
+              <button
+                onClick={handleCliCopy}
+                className="shrink-0 p-1.5 hover:bg-gray-200 rounded transition-colors"
+                aria-label="Copy command"
+              >
+                {cliCopied ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <CopyIcon className="h-4 w-4 text-gray-600" />
+                )}
+              </button>
             </div>
 
             <Separator className="mb-6" />
