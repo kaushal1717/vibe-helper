@@ -21,8 +21,8 @@ export function CopyButton({
   onCopy,
   ruleId,
   onCopyCountUpdate,
-  copyLabel,
-  copiedLabel,
+  copyLabel = "Copy",
+  copiedLabel = "Copied",
 }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
@@ -84,7 +84,7 @@ export function CopyButton({
         variant="ghost"
         size="sm"
         onClick={handleCopy}
-        className="copy-btn-scale text-primary hover:text-accent hover:bg-accent/10 transition-all duration-200 font-medium"
+        className="text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200 font-medium"
       >
         {copied ? (
           <>

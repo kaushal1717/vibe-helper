@@ -122,43 +122,43 @@ export default function Home() {
   }, [rules, search, selectedTechStack, sortBy])
 
   return (
-    <main className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Hero Header */}
-        <div className="text-center mb-16 slide-up">
-          <h1 className="text-5xl md:text-7xl font-black mb-6 bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight leading-[1.1]">
+    <main className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl lg:text-5xl font-bold mb-4 tracking-tight">
             Cursorize
           </h1>
-          <p className="text-xl md:text-2xl font-medium text-foreground/60 max-w-3xl mx-auto mb-8 leading-relaxed tracking-wide italic">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Discover and share cursor rules for your favorite tech stacks
           </p>
-          <div className="glass-panel inline-flex items-center gap-8 px-12 py-6 rounded-full shadow-xl border-[1.5px] border-white/60">
-            <div className="flex items-center gap-3">
-              <span className="text-4xl font-black bg-gradient-to-br from-secondary to-secondary/60 bg-clip-text text-transparent dark:neon-glow">{rules.length}</span>
-              <span className="text-xs font-extrabold text-foreground/50 uppercase tracking-[0.2em]">Rules</span>
+          <div className="mt-6 flex items-center justify-center gap-6 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground">{rules.length}</span>
+              <span>rules</span>
             </div>
-            <div className="h-12 w-[2px] bg-gradient-to-b from-transparent via-foreground/20 to-transparent" />
-            <div className="flex items-center gap-3">
-              <span className="text-4xl font-black bg-gradient-to-br from-secondary to-secondary/60 bg-clip-text text-transparent dark:neon-glow">{techStacks.length}</span>
-              <span className="text-xs font-extrabold text-foreground/50 uppercase tracking-[0.2em]">Tech Stacks</span>
+            <div className="h-4 w-px bg-border" />
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground">{techStacks.length}</span>
+              <span>tech stacks</span>
             </div>
           </div>
         </div>
 
         {/* CTA Banner */}
-        <div className="mb-12 glass-panel hover-glow rounded-2xl p-8 shadow-2xl border-[1.5px] border-white/60">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="mb-12 bg-primary/5 rounded-lg p-6 border border-primary/10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-center md:text-left">
-              <h3 className="text-3xl font-black mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight">
+              <h3 className="text-lg font-semibold text-foreground mb-1">
                 Need a custom cursor rule?
               </h3>
-              <p className="text-foreground/60 text-lg font-medium tracking-wide">
+              <p className="text-sm text-muted-foreground">
                 Request a cursor rule and our team will create it for you
               </p>
             </div>
             <a
               href="/request-rule"
-              className="btn-lift px-8 py-3.5 bg-secondary text-secondary-foreground rounded-xl hover:bg-mint-hover transition-all duration-300 whitespace-nowrap font-bold shadow-lg text-base"
+              className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors whitespace-nowrap font-medium"
             >
               Request a Rule
             </a>

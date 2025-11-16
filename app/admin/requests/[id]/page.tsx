@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { StatusSelect } from '@/components/admin/status-select'
 import Link from 'next/link'
 import moment from 'moment'
 import { ArrowLeft } from 'lucide-react'
@@ -233,17 +234,7 @@ export default async function AdminRequestDetailPage({ params }: PageProps) {
             <form action={handleResponse} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="status">Status *</Label>
-                <select
-                  id="status"
-                  name="status"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="">Select status...</option>
-                  <option value="APPROVED">Approve</option>
-                  <option value="REJECTED">Reject</option>
-                  <option value="CHANGES_REQUESTED">Request Changes</option>
-                </select>
+                <StatusSelect />
               </div>
 
               <div className="space-y-2">
