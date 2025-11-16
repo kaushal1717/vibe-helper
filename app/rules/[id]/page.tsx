@@ -31,7 +31,12 @@ import {
 } from "@/components/ui/select";
 import type { CursorRule } from "@/types";
 import { toast } from "sonner";
-import { markRuleAsViewed, hasViewedRule } from "@/lib/utils/localStorage";
+import {
+  markRuleAsViewed,
+  hasViewedRule,
+  hasCopiedRule,
+  markRuleAsCopied,
+} from "@/lib/utils/localStorage";
 import { getSessionId } from "@/lib/utils/session";
 import { RepoSelectorDialog } from "@/components/github/repo-selector-dialog";
 
@@ -78,6 +83,7 @@ export default function RuleDetailPage() {
       "Copied",
       formattedDate,
       rule.user?.name || rule.user?.email || "",
+      "Create PR on GitHub",
     ];
 
     const response = await fetch("/api/translate/batch", {
@@ -126,6 +132,7 @@ export default function RuleDetailPage() {
           rule.user?.name ||
           rule.user?.email ||
           "",
+        createPR: translatedTexts[baseIndex + 13] || "Create PR on GitHub",
       },
     };
   };
@@ -187,6 +194,7 @@ export default function RuleDetailPage() {
         copied: "Copied",
         date: originalDate,
         userName: rule?.user?.name || rule?.user?.email || "",
+        createPR: "Create PR on GitHub",
       }
     : pageTranslationData?.uiLabels || {
         views: "views",
@@ -201,12 +209,16 @@ export default function RuleDetailPage() {
         copied: "Copied",
         date: originalDate,
         userName: rule?.user?.name || rule?.user?.email || "",
+        createPR: "Create PR on GitHub",
       };
 
   const [showPRDialog, setShowPRDialog] = useState(false);
   const [cliCopied, setCliCopied] = useState(false);
   const [viewCount, setViewCount] = useState(0);
   const [copyCount, setCopyCount] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLiking, setIsLiking] = useState(false);
   const viewTrackedRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -215,6 +227,29 @@ export default function RuleDetailPage() {
     fetchRule();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ruleId]);
+
+  useEffect(() => {
+    if (isSignedIn && ruleId) {
+      fetch(`/api/rules/${ruleId}/like`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.liked !== undefined) {
+            setLiked(data.liked);
+          }
+        })
+        .catch(() => {
+          toast.error("Failed to like rule");
+        });
+    } else {
+      setLiked(false);
+    }
+  }, [isSignedIn, ruleId]);
+
+  useEffect(() => {
+    if (rule?._count?.likes !== undefined) {
+      setLikeCount(rule._count.likes);
+    }
+  }, [rule?._count?.likes]);
 
   const fetchRule = async () => {
     try {
@@ -230,6 +265,7 @@ export default function RuleDetailPage() {
       setRule(data);
       setViewCount(data.viewCount || 0);
       setCopyCount(data.copyCount || 0);
+      setLikeCount(data._count?.likes || 0);
 
       // Track view only once per ruleId (prevent double tracking in React Strict Mode)
       if (viewTrackedRef.current !== ruleId) {
@@ -275,19 +311,10 @@ export default function RuleDetailPage() {
   };
 
   const handleCopy = (newCopyCount?: number) => {
-    // Update copy count in UI
     if (newCopyCount !== undefined) {
       setCopyCount(newCopyCount);
       setRule((prev) => (prev ? { ...prev, copyCount: newCopyCount } : null));
     }
-  };
-
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
   };
 
   const getInitials = (name: string | null, email: string) => {
@@ -328,44 +355,44 @@ export default function RuleDetailPage() {
   };
 
   const languages = [
-    { code: "gu", name: "Gujarati" },
-    { code: "hi", name: "Hindi" },
+    { code: "ar", name: "Arabic" },
+    { code: "zh", name: "Chinese" },
+    { code: "cs", name: "Czech" },
+    { code: "da", name: "Danish" },
+    { code: "nl", name: "Dutch" },
     { code: "en", name: "English" },
-    { code: "mr", name: "Marathi" },
-    { code: "ta", name: "Tamil" },
-    { code: "te", name: "Telugu" },
-    { code: "kn", name: "Kannada" },
-    { code: "ml", name: "Malayalam" },
-    { code: "ur", name: "Urdu" },
-    { code: "es", name: "Spanish" },
+    { code: "fi", name: "Finnish" },
     { code: "fr", name: "French" },
     { code: "de", name: "German" },
+    { code: "gu", name: "Gujarati" },
+    { code: "hi", name: "Hindi" },
     { code: "it", name: "Italian" },
+    { code: "ja", name: "Japanese" },
+    { code: "kn", name: "Kannada" },
+    { code: "ko", name: "Korean" },
+    { code: "ml", name: "Malayalam" },
+    { code: "mr", name: "Marathi" },
+    { code: "no", name: "Norwegian" },
+    { code: "pl", name: "Polish" },
     { code: "pt", name: "Portuguese" },
     { code: "ru", name: "Russian" },
-    { code: "ja", name: "Japanese" },
-    { code: "ko", name: "Korean" },
-    { code: "zh", name: "Chinese" },
-    { code: "ar", name: "Arabic" },
-    { code: "nl", name: "Dutch" },
-    { code: "pl", name: "Polish" },
-    { code: "tr", name: "Turkish" },
+    { code: "sd", name: "Sindhi" },
+    { code: "es", name: "Spanish" },
     { code: "sv", name: "Swedish" },
-    { code: "da", name: "Danish" },
-    { code: "fi", name: "Finnish" },
-    { code: "no", name: "Norwegian" },
-    { code: "cs", name: "Czech" },
+    { code: "ta", name: "Tamil" },
+    { code: "te", name: "Telugu" },
+    { code: "tr", name: "Turkish" },
     { code: "uk", name: "Ukrainian" },
+    { code: "ur", name: "Urdu" },
   ];
   const handleCreatePRClick = () => {
     if (!isLoaded) {
-      return; // Wait for auth to load
+      return;
     }
 
     if (isSignedIn) {
       setShowPRDialog(true);
     }
-    // If not signed in, SignInButton will handle the modal
   };
 
   const cliCommand = `npx cursorize@latest add ${ruleId}`;
@@ -375,9 +402,86 @@ export default function RuleDetailPage() {
       await navigator.clipboard.writeText(cliCommand);
       setCliCopied(true);
       toast.success("Command copied to clipboard!");
+
+      const isNewCopy = !hasCopiedRule(ruleId);
+      if (isNewCopy) {
+        markRuleAsCopied(ruleId);
+      }
+
+      try {
+        const sessionId = getSessionId();
+        const response = await fetch(`/api/rules/${ruleId}/copy`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sessionId }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.copyCount !== undefined) {
+            setCopyCount(data.copyCount);
+            setRule((prev) =>
+              prev ? { ...prev, copyCount: data.copyCount } : null
+            );
+          }
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error("Error tracking copy:", errorData);
+        }
+      } catch (error) {
+        toast.error("Failed to copy");
+      }
+
       setTimeout(() => setCliCopied(false), 2000);
     } catch {
       toast.error("Failed to copy");
+    }
+  };
+
+  const handleLike = async () => {
+    if (!isSignedIn) {
+      toast.error("Please log in to like rules");
+      return;
+    }
+
+    setIsLiking(true);
+    try {
+      const response = await fetch(`/api/rules/${ruleId}/like`, {
+        method: "POST",
+      });
+
+      if (response.status === 401) {
+        toast.error("Please log in to like rules");
+        setIsLiking(false);
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to like");
+      }
+
+      const data = await response.json();
+      setLiked(data.liked);
+      setLikeCount(data.likeCount);
+      setRule((prev) =>
+        prev
+          ? {
+              ...prev,
+              hasLiked: data.liked,
+              _count: prev._count
+                ? { ...prev._count, likes: data.likeCount }
+                : { likes: data.likeCount, comments: 0, favorites: 0 },
+            }
+          : null
+      );
+      toast.success(data.liked ? "Liked!" : "Unliked");
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      toast.error("Failed to toggle like");
+    } finally {
+      setIsLiking(false);
     }
   };
 
@@ -454,9 +558,16 @@ export default function RuleDetailPage() {
 
         <Card>
           <CardHeader>
-            <Badge variant="secondary" className="w-fit mb-4">
-              {rule.techStack}
-            </Badge>
+            <div className="flex items-center justify-between mb-4">
+              <Badge variant="secondary" className="w-fit">
+                {rule.techStack}
+              </Badge>
+              <div className="flex items-center  px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md">
+                <span className="text-xs font-medium text-gray-600">
+                  {uiLabels.date}
+                </span>
+              </div>
+            </div>
 
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
               {showOriginal ? rule.title : translatedTitle}
@@ -493,22 +604,45 @@ export default function RuleDetailPage() {
                   {rule.copyCount} {uiLabels.copies}
                 </span>
               </div>
-              {rule._count && (
-                <>
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-4 w-4" />
+              {isSignedIn ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLike}
+                  disabled={isLiking}
+                  className={`text-red-600 hover:text-red-700 hover:bg-red-50 ${liked ? "bg-red-50" : ""}`}
+                  title="Like this rule"
+                >
+                  <Heart
+                    className={`h-4 w-4 mr-1 ${liked ? "fill-red-600 text-red-600" : ""}`}
+                  />
+                  <span>
+                    {likeCount} {uiLabels.likes}
+                  </span>
+                </Button>
+              ) : (
+                <SignInButton mode="modal">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    title="Like this rule"
+                  >
+                    <Heart className="h-4 w-4 mr-1" />
                     <span>
-                      {rule._count.likes} {uiLabels.likes}
+                      {likeCount} {uiLabels.likes}
                     </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageCircle className="h-4 w-4" />
-                    <span>
-                      {rule._count.comments} {uiLabels.comments}
-                    </span>
-                  </div>
-                </>
+                  </Button>
+                </SignInButton>
               )}
+              {/* {rule._count && (
+                <div className="flex items-center gap-1">
+                  <MessageCircle className="h-4 w-4" />
+                  <span>
+                    {rule._count.comments} {uiLabels.comments}
+                  </span>
+                </div>
+              )} */}
             </div>
 
             {/* CLI Command */}
@@ -533,7 +667,7 @@ export default function RuleDetailPage() {
 
             {/* Author Info */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              {/* <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={rule.user?.image || undefined} />
                   <AvatarFallback>
@@ -552,15 +686,14 @@ export default function RuleDetailPage() {
                     <span>{uiLabels.date}</span>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
-              <div className="flex items-center gap-2">
-                <CopyButton content={rule.content} onCopy={handleCopy} />
+              <div className="flex items-center gap-2 w-full justify-end">
                 {isLoaded && !isSignedIn ? (
                   <SignInButton mode="modal">
                     <Button variant="outline" className="gap-2">
                       <GitBranch className="h-4 w-4" />
-                      Create PR on GitHub
+                      {uiLabels.createPR}
                     </Button>
                   </SignInButton>
                 ) : (
@@ -570,7 +703,7 @@ export default function RuleDetailPage() {
                     className="gap-2"
                   >
                     <GitBranch className="h-4 w-4" />
-                    Create PR on GitHub
+                    {uiLabels.createPR}
                   </Button>
                 )}
               </div>

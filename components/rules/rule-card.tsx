@@ -1,29 +1,47 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { useUser, SignInButton } from "@clerk/nextjs"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { CopyButton } from "@/components/shared/copy-button"
-import { Eye, Copy as CopyIcon, Heart, MessageCircle, CheckIcon } from "lucide-react"
-import type { CursorRule } from "@/types"
-import { toast } from "sonner"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useUser, SignInButton } from "@clerk/nextjs";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/shared/copy-button";
+import {
+  Eye,
+  Copy as CopyIcon,
+  Heart,
+  MessageCircle,
+  CheckIcon,
+} from "lucide-react";
+import type { CursorRule } from "@/types";
+import { toast } from "sonner";
+import { hasCopiedRule, markRuleAsCopied } from "@/lib/utils/localStorage";
+import { getSessionId } from "@/lib/utils/session";
 
 interface RuleCardProps {
-  rule: CursorRule
-  onCopy?: (ruleId: string, copyCount?: number) => void
-  onLikeUpdate?: (ruleId: string, liked: boolean, likeCount: number) => void
-  onCopyCountUpdate?: (ruleId: string, copyCount: number) => void
+  rule: CursorRule;
+  onCopy?: (ruleId: string, copyCount?: number) => void;
+  onLikeUpdate?: (ruleId: string, liked: boolean, likeCount: number) => void;
+  onCopyCountUpdate?: (ruleId: string, copyCount: number) => void;
 }
 
-export function RuleCard({ rule, onCopy, onLikeUpdate, onCopyCountUpdate }: RuleCardProps) {
-  const { isSignedIn } = useUser()
-  const [isLiking, setIsLiking] = useState(false)
-  const [liked, setLiked] = useState(rule.hasLiked || false)
-  const [likeCount, setLikeCount] = useState(rule._count?.likes || 0)
-  const [copyCount, setCopyCount] = useState(rule.copyCount || 0)
+export function RuleCard({
+  rule,
+  onCopy,
+  onLikeUpdate,
+  onCopyCountUpdate,
+}: RuleCardProps) {
+  const { isSignedIn } = useUser();
+  const [isLiking, setIsLiking] = useState(false);
+  const [liked, setLiked] = useState(rule.hasLiked || false);
+  const [likeCount, setLikeCount] = useState(rule._count?.likes || 0);
+  const [copyCount, setCopyCount] = useState(rule.copyCount || 0);
   const [cliCopied, setCliCopied] = useState(false);
 
   const cliCommand = `npx cursorize@latest add ${rule.id}`;
@@ -33,6 +51,37 @@ export function RuleCard({ rule, onCopy, onLikeUpdate, onCopyCountUpdate }: Rule
       await navigator.clipboard.writeText(cliCommand);
       setCliCopied(true);
       toast.success("Command copied to clipboard!");
+
+      const isNewCopy = !hasCopiedRule(rule.id);
+      if (isNewCopy) {
+        markRuleAsCopied(rule.id);
+      }
+
+      try {
+        const sessionId = getSessionId();
+        const response = await fetch(`/api/rules/${rule.id}/copy`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sessionId }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.copyCount !== undefined) {
+            setCopyCount(data.copyCount);
+            onCopyCountUpdate?.(rule.id, data.copyCount);
+            onCopy?.(rule.id, data.copyCount);
+          }
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error("Error tracking copy:", errorData);
+        }
+      } catch (error) {
+        console.error("Error tracking copy:", error);
+      }
+
       setTimeout(() => setCliCopied(false), 2000);
     } catch {
       toast.error("Failed to copy");
@@ -46,70 +95,70 @@ export function RuleCard({ rule, onCopy, onLikeUpdate, onCopyCountUpdate }: Rule
         .then((res) => res.json())
         .then((data) => {
           if (data.liked !== undefined) {
-            setLiked(data.liked)
+            setLiked(data.liked);
           }
         })
         .catch(() => {
           // Silently fail
-        })
+        });
     } else {
-      setLiked(false)
+      setLiked(false);
     }
-  }, [isSignedIn, rule.id])
+  }, [isSignedIn, rule.id]);
 
   // Update like count when rule changes
   useEffect(() => {
-    setLikeCount(rule._count?.likes || 0)
-  }, [rule._count?.likes])
+    setLikeCount(rule._count?.likes || 0);
+  }, [rule._count?.likes]);
 
   // Update copy count when rule changes
   useEffect(() => {
-    setCopyCount(rule.copyCount || 0)
-  }, [rule.copyCount])
+    setCopyCount(rule.copyCount || 0);
+  }, [rule.copyCount]);
 
   const handleCopy = (copyCount?: number) => {
-    onCopy?.(rule.id, copyCount)
-  }
+    onCopy?.(rule.id, copyCount);
+  };
 
   const handleCopyCountUpdate = (newCopyCount: number) => {
-    setCopyCount(newCopyCount)
-    onCopyCountUpdate?.(rule.id, newCopyCount)
-  }
+    setCopyCount(newCopyCount);
+    onCopyCountUpdate?.(rule.id, newCopyCount);
+  };
 
   const handleLike = async () => {
     if (!isSignedIn) {
-      toast.error("Please log in to like rules")
-      return
+      toast.error("Please log in to like rules");
+      return;
     }
 
-    setIsLiking(true)
+    setIsLiking(true);
     try {
       const response = await fetch(`/api/rules/${rule.id}/like`, {
         method: "POST",
-      })
+      });
 
       if (response.status === 401) {
-        toast.error("Please log in to like rules")
-        setIsLiking(false)
-        return
+        toast.error("Please log in to like rules");
+        setIsLiking(false);
+        return;
       }
 
       if (!response.ok) {
-        throw new Error("Failed to like")
+        throw new Error("Failed to like");
       }
 
-      const data = await response.json()
-      setLiked(data.liked)
-      setLikeCount(data.likeCount)
-      onLikeUpdate?.(rule.id, data.liked, data.likeCount)
-      toast.success(data.liked ? "Liked!" : "Unliked")
+      const data = await response.json();
+      setLiked(data.liked);
+      setLikeCount(data.likeCount);
+      onLikeUpdate?.(rule.id, data.liked, data.likeCount);
+      toast.success(data.liked ? "Liked!" : "Unliked");
     } catch (error) {
-      console.error("Error toggling like:", error)
-      toast.error("Failed to toggle like")
+      console.error("Error toggling like:", error);
+      toast.error("Failed to toggle like");
     } finally {
-      setIsLiking(false)
+      setIsLiking(false);
     }
-  }
+  };
 
   return (
     <Card className="glass-panel hover-glow transition-all duration-300 border-[1.5px] border-white/60 shadow-xl slide-up overflow-hidden">
