@@ -1,19 +1,49 @@
-import Link from "next/link"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { CopyButton } from "@/components/shared/copy-button"
-import { Eye, Copy as CopyIcon, Heart, MessageCircle } from "lucide-react"
-import type { CursorRule } from "@/types"
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CopyButton } from "@/components/shared/copy-button";
+import {
+  Eye,
+  Copy as CopyIcon,
+  Heart,
+  MessageCircle,
+  Check,
+} from "lucide-react";
+import { toast } from "sonner";
+import type { CursorRule } from "@/types";
 
 interface RuleCardProps {
-  rule: CursorRule
-  onCopy?: (ruleId: string) => void
+  rule: CursorRule;
+  onCopy?: (ruleId: string) => void;
 }
 
 export function RuleCard({ rule, onCopy }: RuleCardProps) {
+  const [cliCopied, setCliCopied] = useState(false);
+
   const handleCopy = () => {
-    onCopy?.(rule.id)
-  }
+    onCopy?.(rule.id);
+  };
+
+  const cliCommand = `npx cursorize@latest add ${rule.id}`;
+
+  const handleCliCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(cliCommand);
+      setCliCopied(true);
+      toast.success("Command copied to clipboard!");
+      setTimeout(() => setCliCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
 
   return (
     <Card className="hover:shadow-lg transition-shadow duration-200">
@@ -61,6 +91,23 @@ export function RuleCard({ rule, onCopy }: RuleCardProps) {
             {rule.content}
           </pre>
         </div>
+
+        <div className="mt-3 flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-md border border-gray-200 overflow-hidden">
+          <code className="flex-1 text-xs text-gray-700 font-mono whitespace-nowrap overflow-x-auto scrollbar-hide">
+            {cliCommand}
+          </code>
+          <button
+            onClick={handleCliCopy}
+            className="shrink-0 p-1.5 hover:bg-gray-200 rounded transition-colors"
+            aria-label="Copy command"
+          >
+            {cliCopied ? (
+              <Check className="h-4 w-4 text-green-600" />
+            ) : (
+              <CopyIcon className="h-4 w-4 text-gray-600" />
+            )}
+          </button>
+        </div>
       </CardContent>
 
       <CardFooter className="flex items-center justify-between pt-3">
@@ -93,5 +140,5 @@ export function RuleCard({ rule, onCopy }: RuleCardProps) {
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }
