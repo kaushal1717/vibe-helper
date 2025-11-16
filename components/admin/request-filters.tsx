@@ -41,7 +41,7 @@ export function RequestFilters({ techStacks }: RequestFiltersProps) {
             <select
               value={statusFilter}
               onChange={handleStatusChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="all">All Statuses</option>
               <option value="PENDING">Pending</option>
@@ -56,7 +56,7 @@ export function RequestFilters({ techStacks }: RequestFiltersProps) {
             <select
               value={techStackFilter}
               onChange={handleTechStackChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="all">All Tech Stacks</option>
               {techStacks.map((tech) => (
