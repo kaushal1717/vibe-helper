@@ -11,13 +11,6 @@ export async function GET(
     const rule = await prisma.cursorRule.findUnique({
       where: { id },
       include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-            image: true,
-          },
-        },
         _count: {
           select: {
             likes: true,

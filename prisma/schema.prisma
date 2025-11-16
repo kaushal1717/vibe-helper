@@ -21,45 +21,9 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   rules         CursorRule[]
-  sessions      Session[]
-  accounts      Account[]
   likes         Like[]
   comments      Comment[]
   favorites     Favorite[]
-  views         View[]
-  copies        Copy[]
-}
-
-model Session {
-  id        String   @id @default(cuid()) @map("_id")
-  userId    String
-  user      User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
-  expiresAt DateTime
-  token     String   @unique
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-}
-
-model Account {
-  id                String   @id @default(cuid()) @map("_id")
-  userId            String
-  user              User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
-  accountId         String
-  providerId        String
-  accessToken       String?
-  refreshToken      String?
-  idToken           String?
-  expiresAt         DateTime?
-  password          String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  @@unique([providerId, accountId])
-  @@index([userId])
 }
 
 model CursorRule {
@@ -127,11 +91,30 @@ model Favorite {
   @@index([userId])
 }
 
+model RuleRequest {
+  id            String    @id @default(cuid()) @map("_id")
+  title         String
+  techStack     String
+  description   String?
+  requestText   String    // User's detailed description of what they want
+  userId        String    // Clerk user ID
+  status        String    @default("PENDING") // PENDING, APPROVED, REJECTED, CHANGES_REQUESTED
+  adminNotes    String?   // Admin's internal notes
+  adminResponse String?   // Admin's response to the user
+  reviewedBy    String?   // Clerk admin user ID
+  reviewedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([techStack])
+}
+
 model View {
   id        String   @id @default(cuid()) @map("_id")
   userId    String?
   ruleId    String
-  user      User?    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   rule      CursorRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
   sessionId String?  // For non-logged users, track by session/localStorage identifier
   createdAt DateTime @default(now())
@@ -145,7 +128,6 @@ model Copy {
   id        String   @id @default(cuid()) @map("_id")
   userId    String?
   ruleId    String
-  user      User?    @relation(fields: [userId], references: [user_id], onDelete: Cascade)
   rule      CursorRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
   sessionId String?  // For non-logged users, track by session/localStorage identifier
   createdAt DateTime @default(now())
