@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Github } from "lucide-react";
+import { Loader2, Github, Search } from "lucide-react";
 import { toast } from "sonner";
 
 interface Repo {
@@ -50,11 +50,13 @@ export function RepoSelectorDialog({
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     if (open) {
       fetchRepos();
       setFileName("rules.mdc");
+      setSearchQuery(""); // Reset search when dialog opens
     }
   }, [open]);
 
@@ -136,6 +138,18 @@ export function RepoSelectorDialog({
     }
   };
 
+  // Filter repos based on search query
+  const filteredRepos = repos.filter((repo) => {
+    if (!searchQuery.trim()) return true;
+
+    const query = searchQuery.toLowerCase();
+    return (
+      repo.name.toLowerCase().includes(query) ||
+      repo.full_name.toLowerCase().includes(query) ||
+      (repo.description && repo.description.toLowerCase().includes(query))
+    );
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -187,11 +201,30 @@ export function RepoSelectorDialog({
             {/* Repository Selector */}
             <div className="space-y-2">
               <Label htmlFor="repo">Select Repository</Label>
+
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="search"
+                  type="text"
+                  placeholder="Search repositories..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 mb-2"
+                  disabled={loading || fetching}
+                />
+              </div>
+
               <div className="border rounded-md max-h-64 overflow-y-auto">
-                {repos.length === 0 ? (
+                {filteredRepos.length === 0 ? (
                   <div className="p-4 text-center text-sm text-muted-foreground">
                     {error ? (
                       <span>{error}</span>
+                    ) : searchQuery ? (
+                      <span>
+                        No repositories found matching "{searchQuery}"
+                      </span>
                     ) : (
                       <span>
                         No repositories found. Make sure your GitHub account is
@@ -200,7 +233,7 @@ export function RepoSelectorDialog({
                     )}
                   </div>
                 ) : (
-                  repos.map((repo) => (
+                  filteredRepos.map((repo) => (
                     <button
                       key={repo.id}
                       onClick={() => setSelectedRepo(repo.full_name)}
