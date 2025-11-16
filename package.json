@@ -9,7 +9,10 @@
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "cli:build": "cd packages/cli && npm install && npm run build",
+    "cli:dev": "cd packages/cli && npm run dev",
+    "cli": "node packages/cli/dist/index.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -17,6 +20,7 @@
   "dependencies": {
     "@clerk/nextjs": "^6.35.1",
     "@hookform/resolvers": "^5.2.2",
+    "@octokit/rest": "^22.0.1",
     "@prisma/client": "^6.19.0",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",

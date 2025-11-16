@@ -1,0 +1,36 @@
+{
+  "name": "cursorize",
+  "version": "1.0.0",
+  "description": "CLI tool to add cursor rules to your project",
+  "type": "module",
+  "bin": {
+    "cursorize": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.0.0",
+    "fs-extra": "^11.2.0",
+    "inquirer": "^9.2.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "cursor",
+    "rules",
+    "cli",
+    "cursor-rules"
+  ],
+  "author": "",
+  "license": "MIT"
+}

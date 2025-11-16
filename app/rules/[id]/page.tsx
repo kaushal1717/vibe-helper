@@ -1,28 +1,42 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useRef } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { CopyButton } from "@/components/shared/copy-button"
-import { LoadingSpinner } from "@/components/shared/loading-spinner"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowLeft, Eye, Copy as CopyIcon, Heart, MessageCircle, Calendar } from "lucide-react"
-import type { CursorRule } from "@/types"
-import { toast } from "sonner"
+import { useEffect, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useUser, SignInButton } from "@clerk/nextjs";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { CopyButton } from "@/components/shared/copy-button";
+import { LoadingSpinner } from "@/components/shared/loading-spinner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  ArrowLeft,
+  Eye,
+  Copy as CopyIcon,
+  Heart,
+  MessageCircle,
+  Calendar,
+  GitBranch,
+  Check,
+} from "lucide-react";
+import type { CursorRule } from "@/types";
+import { toast } from "sonner";
 import { markRuleAsViewed, hasViewedRule } from "@/lib/utils/localStorage"
 import { getSessionId } from "@/lib/utils/session"
+import { RepoSelectorDialog } from "@/components/github/repo-selector-dialog";
 
 export default function RuleDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const ruleId = params.id as string
+  const params = useParams();
+  const router = useRouter();
+  const ruleId = params.id as string;
+  const { isSignedIn, isLoaded } = useUser();
 
-  const [rule, setRule] = useState<CursorRule | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const [rule, setRule] = useState<CursorRule | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showPRDialog, setShowPRDialog] = useState(false);
+  const [cliCopied, setCliCopied] = useState(false);
   const [viewCount, setViewCount] = useState(0)
   const [copyCount, setCopyCount] = useState(0)
   const viewTrackedRef = useRef<string | null>(null)
@@ -34,14 +48,18 @@ export default function RuleDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ruleId])
 
+  useEffect(() => {
+    fetchRule();
+  }, [ruleId]);
+
   const fetchRule = async () => {
     try {
-      const response = await fetch(`/api/rules/${ruleId}`)
+      const response = await fetch(`/api/rules/${ruleId}`);
 
       if (!response.ok) {
-        setError("Rule not found")
-        setLoading(false)
-        return
+        setError("Rule not found");
+        setLoading(false);
+        return;
       }
 
       const data = await response.json()
@@ -83,12 +101,12 @@ export default function RuleDetailPage() {
         }
       }
     } catch (error) {
-      console.error("Error fetching rule:", error)
-      setError("Failed to load rule")
+      console.error("Error fetching rule:", error);
+      setError("Failed to load rule");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleCopy = (newCopyCount?: number) => {
     // Update copy count in UI
@@ -96,46 +114,79 @@ export default function RuleDetailPage() {
       setCopyCount(newCopyCount)
       setRule((prev) => prev ? { ...prev, copyCount: newCopyCount } : null)
     }
-  }
+  };
 
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   const getInitials = (name: string | null, email: string) => {
     if (name) {
-      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+      return name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
     }
-    return email.substring(0, 2).toUpperCase()
-  }
+    return email.substring(0, 2).toUpperCase();
+  };
+
+  const handleCreatePRClick = () => {
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
+
+    if (isSignedIn) {
+      setShowPRDialog(true);
+    }
+    // If not signed in, SignInButton will handle the modal
+  };
+
+  const cliCommand = `npx cursorize@latest add ${ruleId}`;
+
+  const handleCliCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(cliCommand);
+      setCliCopied(true);
+      toast.success("Command copied to clipboard!");
+      setTimeout(() => setCliCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
 
   if (loading) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <LoadingSpinner />
       </div>
-    )
+    );
   }
 
   if (error || !rule) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Rule Not Found</h2>
-        <p className="text-gray-600 mb-6">{error || "The rule you're looking for doesn't exist."}</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Rule Not Found
+        </h2>
+        <p className="text-gray-600 mb-6">
+          {error || "The rule you're looking for doesn't exist."}
+        </p>
         <Button onClick={() => router.push("/")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Home
         </Button>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 lg:px-8 bg-linear-to-b from-gray-50 to-white">
       <div className="max-w-4xl mx-auto">
         {/* Back Button */}
         <Button
@@ -161,9 +212,7 @@ export default function RuleDetailPage() {
 
             {/* Description */}
             {rule.description && (
-              <p className="text-lg text-gray-600 mb-6">
-                {rule.description}
-              </p>
+              <p className="text-lg text-gray-600 mb-6">{rule.description}</p>
             )}
 
             {/* Tags */}
@@ -201,6 +250,24 @@ export default function RuleDetailPage() {
               )}
             </div>
 
+            {/* CLI Command */}
+            <div className="mt-4 flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-md border border-gray-200 overflow-hidden">
+              <code className="flex-1 text-xs text-gray-700 font-mono whitespace-nowrap overflow-x-auto scrollbar-hide">
+                {cliCommand}
+              </code>
+              <button
+                onClick={handleCliCopy}
+                className="shrink-0 p-1.5 hover:bg-gray-200 rounded transition-colors"
+                aria-label="Copy command"
+              >
+                {cliCopied ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <CopyIcon className="h-4 w-4 text-gray-600" />
+                )}
+              </button>
+            </div>
+
             <Separator className="mb-6" />
 
             {/* Author Info */}
@@ -209,7 +276,10 @@ export default function RuleDetailPage() {
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={rule.user?.image || undefined} />
                   <AvatarFallback>
-                    {getInitials(rule.user?.name || null, rule.user?.email || "U")}
+                    {getInitials(
+                      rule.user?.name || null,
+                      rule.user?.email || "U"
+                    )}
                   </AvatarFallback>
                 </Avatar>
                 <div>
@@ -223,6 +293,26 @@ export default function RuleDetailPage() {
                 </div>
               </div>
 
+              <div className="flex items-center gap-2">
+                <CopyButton content={rule.content} onCopy={handleCopy} />
+                {isLoaded && !isSignedIn ? (
+                  <SignInButton mode="modal">
+                    <Button variant="outline" className="gap-2">
+                      <GitBranch className="h-4 w-4" />
+                      Create PR on GitHub
+                    </Button>
+                  </SignInButton>
+                ) : (
+                  <Button
+                    onClick={handleCreatePRClick}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <GitBranch className="h-4 w-4" />
+                    Create PR on GitHub
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
 
@@ -246,7 +336,20 @@ export default function RuleDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* GitHub PR Dialog */}
+        <RepoSelectorDialog
+          open={showPRDialog}
+          onOpenChange={setShowPRDialog}
+          ruleId={rule.id}
+          ruleContent={rule.content}
+          ruleTitle={rule.title}
+          onSuccess={(prUrl) => {
+            window.open(prUrl, "_blank");
+            toast.success("PR created! Opening in new tab...");
+          }}
+        />
       </div>
     </div>
-  )
+  );
 }

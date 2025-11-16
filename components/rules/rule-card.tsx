@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CopyButton } from "@/components/shared/copy-button"
-import { Eye, Copy as CopyIcon, Heart, MessageCircle } from "lucide-react"
+import { Eye, Copy as CopyIcon, Heart, MessageCircle, CheckIcon } from "lucide-react"
 import type { CursorRule } from "@/types"
 import { toast } from "sonner"
 
@@ -24,6 +24,20 @@ export function RuleCard({ rule, onCopy, onLikeUpdate, onCopyCountUpdate }: Rule
   const [liked, setLiked] = useState(rule.hasLiked || false)
   const [likeCount, setLikeCount] = useState(rule._count?.likes || 0)
   const [copyCount, setCopyCount] = useState(rule.copyCount || 0)
+  const [cliCopied, setCliCopied] = useState(false);
+
+  const cliCommand = `npx cursorize@latest add ${rule.id}`;
+
+  const handleCliCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(cliCommand);
+      setCliCopied(true);
+      toast.success("Command copied to clipboard!");
+      setTimeout(() => setCliCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
 
   // Initialize like state from API if logged in
   useEffect(() => {
@@ -143,6 +157,23 @@ export function RuleCard({ rule, onCopy, onLikeUpdate, onCopyCountUpdate }: Rule
             {rule.content}
           </pre>
         </div>
+
+        <div className="mt-3 flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-md border border-gray-200 overflow-hidden">
+          <code className="flex-1 text-xs text-gray-700 font-mono whitespace-nowrap overflow-x-auto scrollbar-hide">
+            {cliCommand}
+          </code>
+          <button
+            onClick={handleCliCopy}
+            className="shrink-0 p-1.5 hover:bg-gray-200 rounded transition-colors"
+            aria-label="Copy command"
+          >
+            {cliCopied ? (
+              <CheckIcon className="h-4 w-4 text-green-600" />
+            ) : (
+              <CopyIcon className="h-4 w-4 text-gray-600" />
+            )}
+          </button>
+        </div>
       </CardContent>
 
       <CardFooter className="flex items-center justify-between pt-3">
@@ -203,5 +234,5 @@ export function RuleCard({ rule, onCopy, onLikeUpdate, onCopyCountUpdate }: Rule
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }
