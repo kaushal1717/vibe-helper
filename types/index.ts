@@ -30,6 +30,7 @@ export interface CursorRule {
     comments: number
     favorites: number
   }
+  hasLiked?: boolean
 }
 
 export interface Like {

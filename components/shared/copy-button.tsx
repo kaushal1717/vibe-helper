@@ -4,10 +4,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+import { markRuleAsCopied, hasCopiedRule } from "@/lib/utils/localStorage";
+import { getSessionId } from "@/lib/utils/session";
 
 interface CopyButtonProps {
   content: string;
-  onCopy?: () => void;
+  onCopy?: (copyCount?: number) => void;
+  ruleId?: string;
+  onCopyCountUpdate?: (copyCount: number) => void;
   copyLabel?: string;
   copiedLabel?: string;
 }
@@ -15,8 +19,10 @@ interface CopyButtonProps {
 export function CopyButton({
   content,
   onCopy,
-  copyLabel = "Copy",
-  copiedLabel = "Copied",
+  ruleId,
+  onCopyCountUpdate,
+  copyLabel,
+  copiedLabel,
 }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
@@ -25,7 +31,47 @@ export function CopyButton({
       await navigator.clipboard.writeText(content);
       setCopied(true);
       toast.success("Copied to clipboard!");
-      onCopy?.();
+
+      // Track copy in database if ruleId is provided
+      if (ruleId) {
+        const isNewCopy = !hasCopiedRule(ruleId);
+        if (isNewCopy) {
+          markRuleAsCopied(ruleId);
+        }
+
+        // Always track copy to get latest count from server
+        try {
+          const sessionId = getSessionId();
+          const response = await fetch(`/api/rules/${ruleId}/copy`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ sessionId }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            // Always update UI with the latest count from server
+            if (data.copyCount !== undefined) {
+              onCopyCountUpdate?.(data.copyCount);
+              onCopy?.(data.copyCount);
+            } else {
+              onCopy?.();
+            }
+          } else {
+            const errorData = await response.json().catch(() => ({}));
+            console.error("Error tracking copy:", errorData);
+            onCopy?.();
+          }
+        } catch (error) {
+          // Silently fail - copy to clipboard still succeeded
+          console.error("Error tracking copy:", error);
+          onCopy?.();
+        }
+      } else {
+        onCopy?.();
+      }
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       toast.error("Failed to copy");

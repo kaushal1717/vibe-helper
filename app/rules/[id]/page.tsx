@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
+import { useEffect, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useUser, SignInButton } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,9 +19,9 @@ import {
   MessageCircle,
   Calendar,
   Languages,
+  GitBranch,
+  Check,
 } from "lucide-react";
-import type { CursorRule } from "@/types";
-import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -28,11 +29,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { CursorRule } from "@/types";
+import { toast } from "sonner";
+import { markRuleAsViewed, hasViewedRule } from "@/lib/utils/localStorage";
+import { getSessionId } from "@/lib/utils/session";
+import { RepoSelectorDialog } from "@/components/github/repo-selector-dialog";
 
 export default function RuleDetailPage() {
   const params = useParams();
   const router = useRouter();
   const ruleId = params.id as string;
+  const { isSignedIn, isLoaded } = useUser();
 
   const [rule, setRule] = useState<CursorRule | null>(null);
   const [loading, setLoading] = useState(true);
@@ -196,8 +203,17 @@ export default function RuleDetailPage() {
         userName: rule?.user?.name || rule?.user?.email || "",
       };
 
+  const [showPRDialog, setShowPRDialog] = useState(false);
+  const [cliCopied, setCliCopied] = useState(false);
+  const [viewCount, setViewCount] = useState(0);
+  const [copyCount, setCopyCount] = useState(0);
+  const viewTrackedRef = useRef<string | null>(null);
+
   useEffect(() => {
+    // Reset tracking when ruleId changes
+    viewTrackedRef.current = null;
     fetchRule();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ruleId]);
 
   const fetchRule = async () => {
@@ -212,10 +228,44 @@ export default function RuleDetailPage() {
 
       const data = await response.json();
       setRule(data);
+      setViewCount(data.viewCount || 0);
+      setCopyCount(data.copyCount || 0);
 
-      await fetch(`/api/rules/${ruleId}/view`, {
-        method: "POST",
-      });
+      // Track view only once per ruleId (prevent double tracking in React Strict Mode)
+      if (viewTrackedRef.current !== ruleId) {
+        viewTrackedRef.current = ruleId;
+
+        // Track view count with localStorage
+        const isNewView = !hasViewedRule(ruleId);
+        if (isNewView) {
+          markRuleAsViewed(ruleId);
+        }
+
+        // Track view on server
+        try {
+          const sessionId = getSessionId();
+          const viewResponse = await fetch(`/api/rules/${ruleId}/view`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ sessionId }),
+          });
+
+          // Update view count in UI with latest from server
+          if (viewResponse.ok) {
+            const viewData = await viewResponse.json();
+            if (viewData.viewCount !== undefined) {
+              setViewCount(viewData.viewCount);
+              setRule((prev) =>
+                prev ? { ...prev, viewCount: viewData.viewCount } : null
+              );
+            }
+          }
+        } catch (error) {
+          console.error("Error tracking view:", error);
+        }
+      }
     } catch (error) {
       console.error("Error fetching rule:", error);
       setError("Failed to load rule");
@@ -224,18 +274,11 @@ export default function RuleDetailPage() {
     }
   };
 
-  const handleCopy = async () => {
-    if (!rule) return;
-
-    try {
-      await fetch(`/api/rules/${ruleId}/copy`, {
-        method: "POST",
-      });
-      setRule((prev) =>
-        prev ? { ...prev, copyCount: prev.copyCount + 1 } : null
-      );
-    } catch (error) {
-      console.error("Error incrementing copy count:", error);
+  const handleCopy = (newCopyCount?: number) => {
+    // Update copy count in UI
+    if (newCopyCount !== undefined) {
+      setCopyCount(newCopyCount);
+      setRule((prev) => (prev ? { ...prev, copyCount: newCopyCount } : null));
     }
   };
 
@@ -314,6 +357,29 @@ export default function RuleDetailPage() {
     { code: "cs", name: "Czech" },
     { code: "uk", name: "Ukrainian" },
   ];
+  const handleCreatePRClick = () => {
+    if (!isLoaded) {
+      return; // Wait for auth to load
+    }
+
+    if (isSignedIn) {
+      setShowPRDialog(true);
+    }
+    // If not signed in, SignInButton will handle the modal
+  };
+
+  const cliCommand = `npx cursorize@latest add ${ruleId}`;
+
+  const handleCliCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(cliCommand);
+      setCliCopied(true);
+      toast.success("Command copied to clipboard!");
+      setTimeout(() => setCliCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
 
   if (loading) {
     return (
@@ -341,7 +407,7 @@ export default function RuleDetailPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 lg:px-8 bg-linear-to-b from-gray-50 to-white">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <Button variant="ghost" onClick={() => router.push("/")}>
@@ -445,26 +511,68 @@ export default function RuleDetailPage() {
               )}
             </div>
 
+            {/* CLI Command */}
+            <div className="mt-4 flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-md border border-gray-200 overflow-hidden">
+              <code className="flex-1 text-xs text-gray-700 font-mono whitespace-nowrap overflow-x-auto scrollbar-hide">
+                {cliCommand}
+              </code>
+              <button
+                onClick={handleCliCopy}
+                className="shrink-0 p-1.5 hover:bg-gray-200 rounded transition-colors"
+                aria-label="Copy command"
+              >
+                {cliCopied ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <CopyIcon className="h-4 w-4 text-gray-600" />
+                )}
+              </button>
+            </div>
+
             <Separator className="mb-6" />
 
-            <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={rule.user?.image || undefined} />
-                <AvatarFallback>
-                  {getInitials(
-                    rule.user?.name || null,
-                    rule.user?.email || "U"
-                  )}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm font-medium text-gray-900">
-                  {uiLabels.userName || rule.user?.name || rule.user?.email}
-                </p>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  <span>{uiLabels.date}</span>
+            {/* Author Info */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={rule.user?.image || undefined} />
+                  <AvatarFallback>
+                    {getInitials(
+                      rule.user?.name || null,
+                      rule.user?.email || "U"
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {uiLabels.userName || rule.user?.name || rule.user?.email}
+                  </p>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    <span>{uiLabels.date}</span>
+                  </div>
                 </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <CopyButton content={rule.content} onCopy={handleCopy} />
+                {isLoaded && !isSignedIn ? (
+                  <SignInButton mode="modal">
+                    <Button variant="outline" className="gap-2">
+                      <GitBranch className="h-4 w-4" />
+                      Create PR on GitHub
+                    </Button>
+                  </SignInButton>
+                ) : (
+                  <Button
+                    onClick={handleCreatePRClick}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <GitBranch className="h-4 w-4" />
+                    Create PR on GitHub
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -485,6 +593,8 @@ export default function RuleDetailPage() {
                   onCopy={handleCopy}
                   copyLabel={uiLabels.copy}
                   copiedLabel={uiLabels.copied}
+                  ruleId={rule.id}
+                  onCopyCountUpdate={handleCopy}
                 />
               </div>
               <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono overflow-x-auto">
@@ -495,6 +605,19 @@ export default function RuleDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* GitHub PR Dialog */}
+        <RepoSelectorDialog
+          open={showPRDialog}
+          onOpenChange={setShowPRDialog}
+          ruleId={rule.id}
+          ruleContent={rule.content}
+          ruleTitle={rule.title}
+          onSuccess={(prUrl) => {
+            window.open(prUrl, "_blank");
+            toast.success("PR created! Opening in new tab...");
+          }}
+        />
       </div>
     </div>
   );
