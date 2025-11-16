@@ -92,6 +92,26 @@ export default function Home() {
           </div>
         </div>
 
+        {/* CTA Banner */}
+        <div className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-center md:text-left">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                Need a custom cursor rule?
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Request a cursor rule and our team will create it for you
+              </p>
+            </div>
+            <a
+              href="/request-rule"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition whitespace-nowrap font-medium"
+            >
+              Request a Rule
+            </a>
+          </div>
+        </div>
+
         {/* Filters */}
         {techStacks.length > 0 && (
           <RuleFilters
