@@ -126,21 +126,21 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Header */}
         <div className="text-center mb-16 slide-up">
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-6 text-foreground">
-            Cursor Rules Library
+          <h1 className="text-5xl md:text-7xl font-black mb-6 bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight leading-[1.1]">
+            Cursorize
           </h1>
-          <p className="text-xl md:text-2xl font-semibold text-foreground/70 max-w-3xl mx-auto mb-8 leading-relaxed">
+          <p className="text-xl md:text-2xl font-medium text-foreground/60 max-w-3xl mx-auto mb-8 leading-relaxed tracking-wide italic">
             Discover and share cursor rules for your favorite tech stacks
           </p>
-          <div className="glass-panel inline-flex items-center gap-6 px-10 py-5 rounded-full shadow-xl border-[1.5px] border-white/60">
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-bold text-secondary dark:neon-glow">{rules.length}</span>
-              <span className="text-sm font-bold text-foreground/60 uppercase tracking-wider">Rules</span>
+          <div className="glass-panel inline-flex items-center gap-8 px-12 py-6 rounded-full shadow-xl border-[1.5px] border-white/60">
+            <div className="flex items-center gap-3">
+              <span className="text-4xl font-black bg-gradient-to-br from-secondary to-secondary/60 bg-clip-text text-transparent dark:neon-glow">{rules.length}</span>
+              <span className="text-xs font-extrabold text-foreground/50 uppercase tracking-[0.2em]">Rules</span>
             </div>
-            <div className="h-10 w-px bg-foreground/20" />
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-bold text-secondary dark:neon-glow">{techStacks.length}</span>
-              <span className="text-sm font-bold text-foreground/60 uppercase tracking-wider">Tech Stacks</span>
+            <div className="h-12 w-[2px] bg-gradient-to-b from-transparent via-foreground/20 to-transparent" />
+            <div className="flex items-center gap-3">
+              <span className="text-4xl font-black bg-gradient-to-br from-secondary to-secondary/60 bg-clip-text text-transparent dark:neon-glow">{techStacks.length}</span>
+              <span className="text-xs font-extrabold text-foreground/50 uppercase tracking-[0.2em]">Tech Stacks</span>
             </div>
           </div>
         </div>
@@ -149,10 +149,10 @@ export default function Home() {
         <div className="mb-12 glass-panel hover-glow rounded-2xl p-8 shadow-2xl border-[1.5px] border-white/60">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-center md:text-left">
-              <h3 className="text-2xl font-bold mb-2 text-foreground">
+              <h3 className="text-3xl font-black mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight">
                 Need a custom cursor rule?
               </h3>
-              <p className="text-foreground/70 text-base font-semibold">
+              <p className="text-foreground/60 text-lg font-medium tracking-wide">
                 Request a cursor rule and our team will create it for you
               </p>
             </div>

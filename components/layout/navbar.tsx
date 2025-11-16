@@ -28,9 +28,9 @@ export default function Navbar() {
             <div className='flex items-center'>
               <Link
                 href='/'
-                className='text-xl font-bold text-foreground hover:text-secondary transition-colors duration-300'
+                className='text-xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent hover:from-secondary hover:to-secondary/70 transition-all duration-300'
               >
-                Cursor Rules
+                Cursorize
               </Link>
             </div>
             <div className='flex items-center gap-4'>
@@ -49,9 +49,9 @@ export default function Navbar() {
           <div className='flex items-center'>
             <Link
               href='/'
-              className='text-xl font-bold text-foreground hover:text-secondary transition-colors duration-300'
+              className='text-xl font-black tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent hover:from-secondary hover:to-secondary/70 transition-all duration-300'
             >
-              Cursor Rules
+              Cursorize
             </Link>
           </div>
 

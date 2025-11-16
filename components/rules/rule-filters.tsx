@@ -28,7 +28,7 @@ export function RuleFilters({
   return (
     <div className="grid gap-4 md:grid-cols-3 mb-8">
       <div className="space-y-2">
-        <Label htmlFor="search" className="font-semibold text-foreground/80">Search</Label>
+        <Label htmlFor="search" className="font-bold text-foreground/70 uppercase text-xs tracking-wider">Search</Label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
           <Input
@@ -43,7 +43,7 @@ export function RuleFilters({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="techStack" className="font-semibold text-foreground/80">Filter by Tech Stack</Label>
+        <Label htmlFor="techStack" className="font-bold text-foreground/70 uppercase text-xs tracking-wider">Filter by Tech Stack</Label>
         <select
           id="techStack"
           value={techStack}
@@ -60,7 +60,7 @@ export function RuleFilters({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="sortBy" className="font-semibold text-foreground/80">Sort By</Label>
+        <Label htmlFor="sortBy" className="font-bold text-foreground/70 uppercase text-xs tracking-wider">Sort By</Label>
         <select
           id="sortBy"
           value={sortBy}

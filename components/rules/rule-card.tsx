@@ -173,7 +173,7 @@ export function RuleCard({
           </div>
         </div>
         <Link href={`/rules/${rule.id}`} className="group">
-          <h3 className="text-xl font-extrabold text-foreground line-clamp-1 group-hover:text-primary transition-colors duration-200">
+          <h3 className="text-xl font-black text-foreground line-clamp-1 group-hover:bg-gradient-to-r group-hover:from-secondary group-hover:to-secondary/70 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300 tracking-tight">
             {rule.title}
           </h3>
         </Link>
@@ -181,7 +181,7 @@ export function RuleCard({
 
       <CardContent className="pb-3">
         {rule.description && (
-          <p className="text-foreground/70 mb-3 line-clamp-2 text-sm font-semibold">
+          <p className="text-foreground/60 mb-3 line-clamp-2 text-sm font-medium tracking-wide leading-relaxed">
             {rule.description}
           </p>
         )}

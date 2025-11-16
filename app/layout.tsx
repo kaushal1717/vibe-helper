@@ -14,8 +14,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Cursor Rules - Share and Discover",
-  description: "Browse and share cursor rules for your favorite tech stacks",
+  title: "Cursorize - Share and Discover Cursor Rules",
+  description: "Browse and share cursor rules for your favorite tech stacks with Cursorize",
 };
 
 export default function RootLayout({
