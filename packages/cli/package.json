@@ -1,6 +1,6 @@
 {
   "name": "cursorize",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI tool to add cursor rules to your project",
   "type": "module",
   "bin": {
