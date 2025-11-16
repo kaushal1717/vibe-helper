@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { UserButton, SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Plus, User, FileText, ShieldCheck, Inbox } from "lucide-react";
 
 export default function Navbar() {
@@ -21,19 +22,19 @@ export default function Navbar() {
 
   if (!mounted || !isLoaded) {
     return (
-      <nav className='bg-white shadow-sm border-b sticky top-0 z-50'>
+      <nav className='glass-panel-strong shadow-lg border-0 sticky top-0 z-50'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='flex justify-between h-16'>
             <div className='flex items-center'>
               <Link
                 href='/'
-                className='text-xl font-bold text-gray-900 hover:text-gray-700 transition'
+                className='text-xl font-bold text-foreground hover:text-secondary transition-colors duration-300'
               >
                 Cursor Rules
               </Link>
             </div>
             <div className='flex items-center gap-4'>
-              {/* Placeholder to prevent layout shift */}
+              <ThemeToggle />
             </div>
           </div>
         </div>
@@ -42,13 +43,13 @@ export default function Navbar() {
   }
 
   return (
-    <nav className='bg-white shadow-sm border-b sticky top-0 z-50'>
+    <nav className='glass-panel-strong shadow-lg border-0 sticky top-0 z-50'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex justify-between h-16'>
           <div className='flex items-center'>
             <Link
               href='/'
-              className='text-xl font-bold text-gray-900 hover:text-gray-700 transition'
+              className='text-xl font-bold text-foreground hover:text-secondary transition-colors duration-300'
             >
               Cursor Rules
             </Link>
@@ -108,6 +109,7 @@ export default function Navbar() {
                 </SignUpButton>
               </>
             )}
+            <ThemeToggle />
           </div>
         </div>
       </div>
