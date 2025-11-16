@@ -9,13 +9,16 @@ export class GitHubService {
     });
   }
 
-  // Get user's repositories
+  // Get user's repositories (with pagination to fetch all)
   async getRepositories() {
-    const { data } = await this.octokit.repos.listForAuthenticatedUser({
-      per_page: 100,
-      sort: "updated",
-    });
-    return data;
+    const repos = await this.octokit.paginate(
+      this.octokit.repos.listForAuthenticatedUser,
+      {
+        per_page: 100,
+        sort: "updated",
+      }
+    );
+    return repos;
   }
 
   // Get default branch of a repository
