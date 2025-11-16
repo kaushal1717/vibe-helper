@@ -161,92 +161,90 @@ export function RuleCard({
   };
 
   return (
-    <Card className="glass-panel hover-glow transition-all duration-300 border-[1.5px] border-white/60 shadow-xl slide-up overflow-hidden">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <Badge variant="secondary" className="mb-2 bg-secondary/10 border-secondary/20 text-secondary border font-bold text-xs px-3 py-1">
+    <Card className="group hover:border-primary/30 transition-[border-color] duration-200">
+      <CardHeader className="pb-4">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <Badge variant="secondary" className="text-xs">
             {rule.techStack}
           </Badge>
-          <div className="flex items-center gap-1 text-xs text-foreground/60 font-semibold">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Eye className="h-3.5 w-3.5" />
-            <span>{rule.viewCount}</span>
+            <span className="font-medium">{rule.viewCount}</span>
           </div>
         </div>
-        <Link href={`/rules/${rule.id}`} className="group">
-          <h3 className="text-xl font-black text-foreground line-clamp-1 group-hover:bg-gradient-to-r group-hover:from-secondary group-hover:to-secondary/70 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300 tracking-tight">
+        <Link href={`/rules/${rule.id}`} className="group/link">
+          <h3 className="text-lg font-semibold text-foreground line-clamp-1 group-hover/link:text-primary transition-colors">
             {rule.title}
           </h3>
         </Link>
       </CardHeader>
 
-      <CardContent className="pb-3">
+      <CardContent className="pb-4 space-y-4">
         {rule.description && (
-          <p className="text-foreground/60 mb-3 line-clamp-2 text-sm font-medium tracking-wide leading-relaxed">
+          <p className="text-muted-foreground mb-3 line-clamp-2 text-sm leading-relaxed">
             {rule.description}
           </p>
         )}
 
         {rule.tags && rule.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex flex-wrap gap-2">
             {rule.tags.slice(0, 3).map((tag, index) => (
-              <Badge key={index} variant="outline" className="text-xs font-semibold border-foreground/20 text-foreground/70">
+              <Badge key={index} variant="outline" className="text-xs font-normal">
                 {tag}
               </Badge>
             ))}
             {rule.tags.length > 3 && (
-              <Badge variant="outline" className="text-xs font-semibold border-foreground/20 text-foreground/70">
+              <Badge variant="outline" className="text-xs font-normal">
                 +{rule.tags.length - 3}
               </Badge>
             )}
           </div>
         )}
 
-        <div className="bg-foreground/5 p-4 rounded-xl mb-3 border border-foreground/10">
-          <pre className="text-sm text-foreground/80 overflow-hidden line-clamp-3 whitespace-pre-wrap font-semibold">
+        <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
+          <pre className="text-xs text-foreground/80 whitespace-pre-wrap font-mono overflow-x-auto leading-relaxed line-clamp-3">
             {rule.content}
           </pre>
         </div>
 
-        <div className="mt-3 glass-panel flex items-center gap-2 px-3 py-2.5 rounded-lg overflow-hidden border border-white/40 shadow-md">
-          <code className="flex-1 text-xs text-foreground/70 font-mono whitespace-nowrap overflow-x-auto scrollbar-hide font-semibold">
+        <div className="bg-muted/30 flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border/50 group/code">
+          <code className="flex-1 text-xs text-foreground/70 font-mono whitespace-nowrap overflow-x-auto scrollbar-hide">
             {cliCommand}
           </code>
           <button
             onClick={handleCliCopy}
-            className="copy-btn-scale shrink-0 p-1.5 hover:bg-primary/20 rounded-lg transition-all duration-200"
+            className="shrink-0 p-1.5 hover:bg-accent rounded-lg transition-all duration-200"
             aria-label="Copy command"
           >
             {cliCopied ? (
-              <CheckIcon className="h-4 w-4 text-green-600 animate-in zoom-in duration-200" />
+              <CheckIcon className="h-4 w-4 text-primary" />
             ) : (
-              <CopyIcon className="h-4 w-4 text-foreground/60" />
+              <CopyIcon className="h-4 w-4 text-muted-foreground group-hover/code:text-foreground" />
             )}
           </button>
         </div>
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between pt-3 border-t border-foreground/10">
-        <div className="flex items-center gap-3 text-sm text-foreground/60 font-semibold">
-          <span className="line-clamp-1">
-            By {rule.user?.name || rule.user?.email}
+      <CardFooter className="flex items-center justify-between pt-4 border-t border-border/50">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="line-clamp-1 text-xs">
+            {rule.user?.name || rule.user?.email}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-3 text-xs text-foreground/60 font-semibold mr-2">
-            {rule._count && (
-              <>
-                <div className="flex items-center gap-1">
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  <span>{rule._count.comments}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CopyIcon className="h-3.5 w-3.5" />
-                  <span>{copyCount}</span>
-                </div>
-              </>
-            )}
-          </div>
+        <div className="flex items-center gap-3">
+          {rule._count && (
+            <>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <MessageCircle className="h-3.5 w-3.5" />
+                <span className="font-medium">{rule._count.comments}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CopyIcon className="h-3.5 w-3.5" />
+                <span className="font-medium">{copyCount}</span>
+              </div>
+            </>
+          )}
           <CopyButton
             content={rule.content}
             onCopy={handleCopy}
@@ -259,24 +257,24 @@ export function RuleCard({
               size="sm"
               onClick={handleLike}
               disabled={isLiking}
-              className={`text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all duration-200 ${liked ? "bg-red-500/10" : ""}`}
+              className={`gap-1.5 ${liked ? "text-red-600 hover:text-red-700 hover:bg-red-50/50 dark:hover:bg-red-950/20" : "text-muted-foreground hover:text-foreground"}`}
               title="Like this rule"
             >
               <Heart
-                className={`h-4 w-4 transition-transform duration-200 ${liked ? "fill-red-500 text-red-500 scale-110" : ""}`}
+                className={`h-4 w-4 transition-all ${liked ? "fill-red-600 text-red-600 scale-110" : ""}`}
               />
-              {likeCount}
+              <span className="font-medium">{likeCount}</span>
             </Button>
           ) : (
             <SignInButton mode="modal">
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all duration-200"
+                className="gap-1.5 text-muted-foreground hover:text-foreground"
                 title="Like this rule"
               >
                 <Heart className="h-4 w-4" />
-                {likeCount}
+                <span className="font-medium">{likeCount}</span>
               </Button>
             </SignInButton>
           )}

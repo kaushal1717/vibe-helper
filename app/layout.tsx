@@ -34,11 +34,13 @@ export default function RootLayout({
             attribute="class"
             defaultTheme="light"
             enableSystem={false}
-            disableTransitionOnChange={false}
+            disableTransitionOnChange={true}
           >
             <Navbar />
-            {children}
-            <Toaster />
+            <main className="min-h-screen">
+              {children}
+            </main>
+            <Toaster position="top-right" richColors />
           </ThemeProvider>
         </body>
       </html>

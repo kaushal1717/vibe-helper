@@ -68,35 +68,35 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
   return (
     <div className="min-h-[calc(100vh-4rem)] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-12 slide-up">
-          <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight">Rule Requests</h1>
-          <p className="text-lg font-medium text-foreground/60 tracking-wide">Review and manage cursor rule requests from users</p>
+        <div className="mb-12">
+          <h1 className="text-4xl md:text-5xl font-semibold mb-4 tracking-tight">Rule Requests</h1>
+          <p className="text-lg text-muted-foreground">Review and manage cursor rule requests from users</p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <Card className="glass-panel border-[1.5px] border-white/60 shadow-lg slide-up hover-glow">
+          <Card>
             <CardHeader className="pb-3">
-              <CardDescription className="text-xs font-bold uppercase tracking-wider text-foreground/50">Pending</CardDescription>
-              <CardTitle className="text-4xl font-black bg-gradient-to-br from-yellow-500 to-yellow-600 bg-clip-text text-transparent">{pendingCount}</CardTitle>
+              <CardDescription className="text-sm font-medium text-muted-foreground">Pending</CardDescription>
+              <CardTitle className="text-4xl font-semibold text-yellow-600 dark:text-yellow-500">{pendingCount}</CardTitle>
             </CardHeader>
           </Card>
-          <Card className="glass-panel border-[1.5px] border-white/60 shadow-lg slide-up hover-glow">
+          <Card>
             <CardHeader className="pb-3">
-              <CardDescription className="text-xs font-bold uppercase tracking-wider text-foreground/50">Changes Requested</CardDescription>
-              <CardTitle className="text-4xl font-black bg-gradient-to-br from-blue-500 to-blue-600 bg-clip-text text-transparent">{changesRequestedCount}</CardTitle>
+              <CardDescription className="text-sm font-medium text-muted-foreground">Changes Requested</CardDescription>
+              <CardTitle className="text-4xl font-semibold text-blue-600 dark:text-blue-500">{changesRequestedCount}</CardTitle>
             </CardHeader>
           </Card>
-          <Card className="glass-panel border-[1.5px] border-white/60 shadow-lg slide-up hover-glow">
+          <Card>
             <CardHeader className="pb-3">
-              <CardDescription className="text-xs font-bold uppercase tracking-wider text-foreground/50">Approved</CardDescription>
-              <CardTitle className="text-4xl font-black bg-gradient-to-br from-secondary to-secondary/60 bg-clip-text text-transparent">{approvedCount}</CardTitle>
+              <CardDescription className="text-sm font-medium text-muted-foreground">Approved</CardDescription>
+              <CardTitle className="text-4xl font-semibold text-primary">{approvedCount}</CardTitle>
             </CardHeader>
           </Card>
-          <Card className="glass-panel border-[1.5px] border-white/60 shadow-lg slide-up hover-glow">
+          <Card>
             <CardHeader className="pb-3">
-              <CardDescription className="text-xs font-bold uppercase tracking-wider text-foreground/50">Rejected</CardDescription>
-              <CardTitle className="text-4xl font-black bg-gradient-to-br from-red-500 to-red-600 bg-clip-text text-transparent">{rejectedCount}</CardTitle>
+              <CardDescription className="text-sm font-medium text-muted-foreground">Rejected</CardDescription>
+              <CardTitle className="text-4xl font-semibold text-red-600 dark:text-red-500">{rejectedCount}</CardTitle>
             </CardHeader>
           </Card>
         </div>
@@ -106,16 +106,16 @@ export default async function AdminRequestsPage({ searchParams }: PageProps) {
 
         {/* Requests List */}
         {requests.length === 0 ? (
-          <Card className="glass-panel border-[1.5px] border-white/60 shadow-xl">
+          <Card>
             <CardContent className="py-16 text-center">
-              <h3 className="text-2xl font-black text-foreground mb-3">No requests found</h3>
-              <p className="text-foreground/60 font-medium">No requests match your current filters.</p>
+              <h3 className="text-2xl font-semibold text-foreground mb-3">No requests found</h3>
+              <p className="text-muted-foreground">No requests match your current filters.</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-6">
             {requests.map((request) => (
-              <Card key={request.id} className="glass-panel hover-glow transition-all duration-300 border-[1.5px] border-white/60 shadow-xl slide-up overflow-hidden">
+              <Card key={request.id} className="overflow-hidden">
                 <CardHeader>
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
