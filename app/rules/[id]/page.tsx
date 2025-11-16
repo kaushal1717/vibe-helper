@@ -31,7 +31,12 @@ import {
 } from "@/components/ui/select";
 import type { CursorRule } from "@/types";
 import { toast } from "sonner";
-import { markRuleAsViewed, hasViewedRule } from "@/lib/utils/localStorage";
+import {
+  markRuleAsViewed,
+  hasViewedRule,
+  hasCopiedRule,
+  markRuleAsCopied,
+} from "@/lib/utils/localStorage";
 import { getSessionId } from "@/lib/utils/session";
 import { RepoSelectorDialog } from "@/components/github/repo-selector-dialog";
 
@@ -211,6 +216,9 @@ export default function RuleDetailPage() {
   const [cliCopied, setCliCopied] = useState(false);
   const [viewCount, setViewCount] = useState(0);
   const [copyCount, setCopyCount] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLiking, setIsLiking] = useState(false);
   const viewTrackedRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -219,6 +227,29 @@ export default function RuleDetailPage() {
     fetchRule();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ruleId]);
+
+  useEffect(() => {
+    if (isSignedIn && ruleId) {
+      fetch(`/api/rules/${ruleId}/like`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.liked !== undefined) {
+            setLiked(data.liked);
+          }
+        })
+        .catch(() => {
+          toast.error("Failed to like rule");
+        });
+    } else {
+      setLiked(false);
+    }
+  }, [isSignedIn, ruleId]);
+
+  useEffect(() => {
+    if (rule?._count?.likes !== undefined) {
+      setLikeCount(rule._count.likes);
+    }
+  }, [rule?._count?.likes]);
 
   const fetchRule = async () => {
     try {
@@ -234,6 +265,7 @@ export default function RuleDetailPage() {
       setRule(data);
       setViewCount(data.viewCount || 0);
       setCopyCount(data.copyCount || 0);
+      setLikeCount(data._count?.likes || 0);
 
       // Track view only once per ruleId (prevent double tracking in React Strict Mode)
       if (viewTrackedRef.current !== ruleId) {
@@ -370,9 +402,86 @@ export default function RuleDetailPage() {
       await navigator.clipboard.writeText(cliCommand);
       setCliCopied(true);
       toast.success("Command copied to clipboard!");
+
+      const isNewCopy = !hasCopiedRule(ruleId);
+      if (isNewCopy) {
+        markRuleAsCopied(ruleId);
+      }
+
+      try {
+        const sessionId = getSessionId();
+        const response = await fetch(`/api/rules/${ruleId}/copy`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sessionId }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.copyCount !== undefined) {
+            setCopyCount(data.copyCount);
+            setRule((prev) =>
+              prev ? { ...prev, copyCount: data.copyCount } : null
+            );
+          }
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error("Error tracking copy:", errorData);
+        }
+      } catch (error) {
+        toast.error("Failed to copy");
+      }
+
       setTimeout(() => setCliCopied(false), 2000);
     } catch {
       toast.error("Failed to copy");
+    }
+  };
+
+  const handleLike = async () => {
+    if (!isSignedIn) {
+      toast.error("Please log in to like rules");
+      return;
+    }
+
+    setIsLiking(true);
+    try {
+      const response = await fetch(`/api/rules/${ruleId}/like`, {
+        method: "POST",
+      });
+
+      if (response.status === 401) {
+        toast.error("Please log in to like rules");
+        setIsLiking(false);
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to like");
+      }
+
+      const data = await response.json();
+      setLiked(data.liked);
+      setLikeCount(data.likeCount);
+      setRule((prev) =>
+        prev
+          ? {
+              ...prev,
+              hasLiked: data.liked,
+              _count: prev._count
+                ? { ...prev._count, likes: data.likeCount }
+                : { likes: data.likeCount, comments: 0, favorites: 0 },
+            }
+          : null
+      );
+      toast.success(data.liked ? "Liked!" : "Unliked");
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      toast.error("Failed to toggle like");
+    } finally {
+      setIsLiking(false);
     }
   };
 
@@ -495,22 +604,45 @@ export default function RuleDetailPage() {
                   {rule.copyCount} {uiLabels.copies}
                 </span>
               </div>
-              {rule._count && (
-                <>
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-4 w-4" />
+              {isSignedIn ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLike}
+                  disabled={isLiking}
+                  className={`text-red-600 hover:text-red-700 hover:bg-red-50 ${liked ? "bg-red-50" : ""}`}
+                  title="Like this rule"
+                >
+                  <Heart
+                    className={`h-4 w-4 mr-1 ${liked ? "fill-red-600 text-red-600" : ""}`}
+                  />
+                  <span>
+                    {likeCount} {uiLabels.likes}
+                  </span>
+                </Button>
+              ) : (
+                <SignInButton mode="modal">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    title="Like this rule"
+                  >
+                    <Heart className="h-4 w-4 mr-1" />
                     <span>
-                      {rule._count.likes} {uiLabels.likes}
+                      {likeCount} {uiLabels.likes}
                     </span>
-                  </div>
-                  {/* <div className="flex items-center gap-1">
-                    <MessageCircle className="h-4 w-4" />
-                    <span>
-                      {rule._count.comments} {uiLabels.comments}
-                    </span>
-                  </div> */}
-                </>
+                  </Button>
+                </SignInButton>
               )}
+              {/* {rule._count && (
+                <div className="flex items-center gap-1">
+                  <MessageCircle className="h-4 w-4" />
+                  <span>
+                    {rule._count.comments} {uiLabels.comments}
+                  </span>
+                </div>
+              )} */}
             </div>
 
             {/* CLI Command */}
