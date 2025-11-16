@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { UserButton, SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { Plus, User, FileText, ShieldCheck, Inbox } from "lucide-react";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { FileText, ShieldCheck, Inbox, Sparkles } from "lucide-react";
 
 export default function Navbar() {
   const { isSignedIn, user, isLoaded } = useUser();
@@ -17,23 +18,22 @@ export default function Navbar() {
   // Check if user is admin
   const isAdmin = user?.publicMetadata?.role === "ADMIN";
 
-  console.log("isAdmin: ", isAdmin);
-
   if (!mounted || !isLoaded) {
     return (
-      <nav className='bg-white shadow-sm border-b sticky top-0 z-50'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex justify-between h-16'>
-            <div className='flex items-center'>
+      <nav className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex h-20 items-center justify-between">
+            <div className="flex items-center gap-2">
               <Link
-                href='/'
-                className='text-xl font-bold text-gray-900 hover:text-gray-700 transition'
+                href="/"
+                className="flex items-center gap-2 text-xl font-semibold tracking-tight text-foreground hover:text-primary transition-colors"
               >
+                <Sparkles className="h-5 w-5 text-primary" />
                 Cursor Rules
               </Link>
             </div>
-            <div className='flex items-center gap-4'>
-              {/* Placeholder to prevent layout shift */}
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8" />
             </div>
           </div>
         </div>
@@ -42,72 +42,71 @@ export default function Navbar() {
   }
 
   return (
-    <nav className='bg-white shadow-sm border-b sticky top-0 z-50'>
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <div className='flex justify-between h-16'>
-          <div className='flex items-center'>
+    <nav className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="flex h-20 items-center justify-between">
+          <div className="flex items-center gap-2">
             <Link
-              href='/'
-              className='text-xl font-bold text-gray-900 hover:text-gray-700 transition'
+              href="/"
+              className="flex items-center gap-2 text-xl font-semibold tracking-tight text-foreground hover:text-primary transition-colors"
             >
+              <Sparkles className="h-5 w-5 text-primary" />
               Cursor Rules
             </Link>
           </div>
 
-          <div className='flex items-center gap-4'>
+          <div className="flex items-center gap-3">
             {isSignedIn ? (
               <>
-                <Button asChild variant='ghost' size='sm'>
-                  <Link href='/request-rule'>
-                    <FileText className='h-4 w-4 mr-2' />
-                    Request Rule
+                <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
+                  <Link href="/request-rule" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    <span className="hidden md:inline">Request Rule</span>
                   </Link>
                 </Button>
-                <Button asChild variant='ghost' size='sm'>
-                  <Link href='/my-requests'>
-                    <Inbox className='h-4 w-4 mr-2' />
-                    My Requests
+                <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
+                  <Link href="/my-requests" className="flex items-center gap-2">
+                    <Inbox className="h-4 w-4" />
+                    <span className="hidden md:inline">My Requests</span>
                   </Link>
                 </Button>
                 {isAdmin && (
-                  <>
-                    <Button
-                      asChild
-                      variant='ghost'
-                      size='sm'
-                      className='text-purple-600 hover:text-purple-700'
-                    >
-                      <Link href='/admin/requests'>
-                        <ShieldCheck className='h-4 w-4 mr-2' />
-                        Admin
-                      </Link>
-                    </Button>
-                  </>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="sm"
+                    className="hidden sm:flex text-primary hover:text-primary/80"
+                  >
+                    <Link href="/admin/requests" className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4" />
+                      <span className="hidden md:inline">Admin</span>
+                    </Link>
+                  </Button>
                 )}
                 <UserButton
-                  afterSignOutUrl='/'
+                  afterSignOutUrl="/"
                   appearance={{
                     elements: {
-                      avatarBox: "w-10 h-10",
+                      avatarBox: "w-9 h-9",
                     },
                   }}
                 />
               </>
             ) : (
               <>
-                <SignInButton mode='modal'>
-                  <Button variant='ghost' size='sm'>
-                    <User className='h-4 w-4 mr-2' />
-                    Login
+                <SignInButton mode="modal">
+                  <Button variant="ghost" size="sm" className="cursor-pointer">
+                    Sign In
                   </Button>
                 </SignInButton>
-                <SignUpButton mode='modal'>
-                  <Button variant='default' size='sm'>
+                <SignUpButton mode="modal">
+                  <Button variant="default" size="sm" className="cursor-pointer">
                     Sign Up
                   </Button>
                 </SignUpButton>
               </>
             )}
+            <ThemeToggle />
           </div>
         </div>
       </div>

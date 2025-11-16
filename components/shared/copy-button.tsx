@@ -21,8 +21,8 @@ export function CopyButton({
   onCopy,
   ruleId,
   onCopyCountUpdate,
-  copyLabel,
-  copiedLabel,
+  copiedLabel = "Copied",
+  copyLabel = "Copy",
 }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 

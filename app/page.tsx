@@ -122,41 +122,45 @@ export default function Home() {
   }, [rules, search, selectedTechStack, sortBy])
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Cursor Rules Library
+        <div className="text-center mb-16">
+          <h1 className="text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
+            <span className="bg-gradient-to-r from-foreground via-foreground to-primary/80 bg-clip-text text-transparent">
+              Cursor Rules Library
+            </span>
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Discover and share cursor rules for your favorite tech stacks
           </p>
-          <div className="mt-6 flex items-center justify-center gap-4 text-sm text-gray-500">
-            <div>
-              <span className="font-semibold text-gray-900">{rules.length}</span> rules
+          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground text-base">{rules.length}</span>
+              <span>rules</span>
             </div>
-            <div className="h-4 w-px bg-gray-300" />
-            <div>
-              <span className="font-semibold text-gray-900">{techStacks.length}</span> tech stacks
+            <div className="h-5 w-px bg-border" />
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground text-base">{techStacks.length}</span>
+              <span>tech stacks</span>
             </div>
           </div>
         </div>
 
         {/* CTA Banner */}
-        <div className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mb-12 bg-gradient-to-br from-primary/5 via-primary/3 to-transparent rounded-2xl p-8 border border-primary/10 shadow-sm">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-center md:text-left">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              <h3 className="text-xl font-semibold text-foreground mb-2">
                 Need a custom cursor rule?
               </h3>
-              <p className="text-gray-600 text-sm">
+              <p className="text-muted-foreground">
                 Request a cursor rule and our team will create it for you
               </p>
             </div>
             <a
               href="/request-rule"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition whitespace-nowrap font-medium"
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-sm hover:shadow-md font-medium whitespace-nowrap"
             >
               Request a Rule
             </a>
@@ -165,20 +169,24 @@ export default function Home() {
 
         {/* Filters */}
         {techStacks.length > 0 && (
-          <RuleFilters
-            search={search}
-            onSearchChange={setSearch}
-            techStack={selectedTechStack}
-            onTechStackChange={setSelectedTechStack}
-            techStacks={techStacks}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-          />
+          <div className="mb-12">
+            <RuleFilters
+              search={search}
+              onSearchChange={setSearch}
+              techStack={selectedTechStack}
+              onTechStackChange={setSelectedTechStack}
+              techStacks={techStacks}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+            />
+          </div>
         )}
 
         {/* Rules Grid */}
         {loading ? (
-          <LoadingSpinner />
+          <div className="flex items-center justify-center py-24">
+            <LoadingSpinner />
+          </div>
         ) : filteredAndSortedRules.length === 0 ? (
           <EmptyState
             title={search || selectedTechStack ? "No matching rules found" : "No cursor rules found"}

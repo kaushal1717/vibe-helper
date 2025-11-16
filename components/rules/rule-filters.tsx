@@ -2,6 +2,13 @@
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Search } from "lucide-react"
 
 type SortOption = "newest" | "oldest" | "likes" | "copies" | "views"
@@ -26,11 +33,11 @@ export function RuleFilters({
   onSortChange,
 }: RuleFiltersProps) {
   return (
-    <div className="grid gap-4 md:grid-cols-3 mb-8">
+    <div className="grid gap-6 md:grid-cols-3">
       <div className="space-y-2">
-        <Label htmlFor="search">Search</Label>
+        <Label htmlFor="search" className="text-sm font-medium">Search</Label>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <Input
             id="search"
             type="text"
@@ -43,36 +50,36 @@ export function RuleFilters({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="techStack">Filter by Tech Stack</Label>
-        <select
-          id="techStack"
-          value={techStack}
-          onChange={(e) => onTechStackChange(e.target.value)}
-          className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="">All Tech Stacks</option>
-          {techStacks.map((tech) => (
-            <option key={tech} value={tech}>
-              {tech}
-            </option>
-          ))}
-        </select>
+        <Label htmlFor="techStack" className="text-sm font-medium capitalize">Filter by technologies</Label>
+        <Select value={techStack || "all"} onValueChange={(value) => onTechStackChange(value === "all" ? "" : value)}>
+          <SelectTrigger id="techStack" className="w-full">
+            <SelectValue placeholder="All Technologies" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Technologies</SelectItem>
+            {techStacks.map((tech) => (
+              <SelectItem key={tech} value={tech}>
+                {tech}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="sortBy">Sort By</Label>
-        <select
-          id="sortBy"
-          value={sortBy}
-          onChange={(e) => onSortChange(e.target.value as SortOption)}
-          className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="newest">Newest First</option>
-          <option value="oldest">Oldest First</option>
-          <option value="likes">Most Liked</option>
-          <option value="copies">Most Copied</option>
-          <option value="views">Most Viewed</option>
-        </select>
+        <Label htmlFor="sortBy" className="text-sm font-medium">Sort By</Label>
+        <Select value={sortBy} onValueChange={(value) => onSortChange(value as SortOption)}>
+          <SelectTrigger id="sortBy" className="w-full">
+            <SelectValue placeholder="Sort by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="oldest">Oldest First</SelectItem>
+            <SelectItem value="likes">Most Liked</SelectItem>
+            <SelectItem value="copies">Most Copied</SelectItem>
+            <SelectItem value="views">Most Viewed</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   )

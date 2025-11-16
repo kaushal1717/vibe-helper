@@ -383,7 +383,7 @@ export default function RuleDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+      <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center">
         <LoadingSpinner />
       </div>
     );
@@ -391,14 +391,14 @@ export default function RuleDetailPage() {
 
   if (error || !rule) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="min-h-[calc(100vh-5rem)] flex flex-col items-center justify-center px-6">
+        <h2 className="text-3xl font-bold text-foreground mb-3">
           Rule Not Found
         </h2>
-        <p className="text-gray-600 mb-6">
+        <p className="text-muted-foreground mb-8 text-center max-w-md">
           {error || "The rule you're looking for doesn't exist."}
         </p>
-        <Button onClick={() => router.push("/")}>
+        <Button onClick={() => router.push("/")} size="lg">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Home
         </Button>
@@ -407,15 +407,15 @@ export default function RuleDetailPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] py-8 px-4 sm:px-6 lg:px-8 bg-linear-to-b from-gray-50 to-white">
+    <div className="min-h-[calc(100vh-5rem)] py-12 px-6 lg:px-8 bg-background">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" onClick={() => router.push("/")}>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <Button variant="ghost" onClick={() => router.push("/")} size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             {showOriginal ? "Back to Rules" : uiLabels.backToRules}
           </Button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Select
               value={selectedLanguage}
               onValueChange={handleLanguageChange}
@@ -435,7 +435,7 @@ export default function RuleDetailPage() {
               onClick={handleTranslate}
               disabled={!selectedLanguage || isTranslating}
               variant="default"
-              size="default"
+              size="sm"
             >
               <Languages className="h-4 w-4 mr-2" />
               {isTranslating ? "Translating..." : uiLabels.translate}
@@ -444,7 +444,7 @@ export default function RuleDetailPage() {
               <Button
                 onClick={handleShowOriginal}
                 variant="outline"
-                size="default"
+                size="sm"
               >
                 {uiLabels.showOriginal}
               </Button>
@@ -453,57 +453,61 @@ export default function RuleDetailPage() {
         </div>
 
         <Card>
-          <CardHeader>
-            <Badge variant="secondary" className="w-fit mb-4">
-              {rule.techStack}
-            </Badge>
+          <CardHeader className="space-y-6">
+            <div className="flex items-start justify-between gap-4">
+              <Badge variant="secondary" className="text-xs">
+                {rule.techStack}
+              </Badge>
+            </div>
 
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              {showOriginal ? rule.title : translatedTitle}
-            </h1>
+            <div>
+              <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
+                {showOriginal ? rule.title : translatedTitle}
+              </h1>
 
-            {(rule.description || translatedDescription) && (
-              <p className="text-lg text-gray-600 mb-6">
-                {showOriginal ? rule.description : translatedDescription}
-              </p>
-            )}
+              {(rule.description || translatedDescription) && (
+                <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                  {showOriginal ? rule.description : translatedDescription}
+                </p>
+              )}
 
-            {(rule.tags || translatedTags).length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6">
-                {(showOriginal ? rule.tags : translatedTags).map(
-                  (tag: any, index: any) => (
-                    <Badge key={index} variant="outline">
-                      {tag}
-                    </Badge>
-                  )
-                )}
-              </div>
-            )}
+              {(rule.tags || translatedTags).length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {(showOriginal ? rule.tags : translatedTags).map(
+                    (tag: any, index: any) => (
+                      <Badge key={index} variant="outline" className="text-xs font-normal">
+                        {tag}
+                      </Badge>
+                    )
+                  )}
+                </div>
+              )}
+            </div>
 
-            <div className="flex items-center gap-6 text-sm text-muted-foreground mb-6">
-              <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
                 <Eye className="h-4 w-4" />
-                <span>
+                <span className="font-medium">
                   {rule.viewCount} {uiLabels.views}
                 </span>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <CopyIcon className="h-4 w-4" />
-                <span>
+                <span className="font-medium">
                   {rule.copyCount} {uiLabels.copies}
                 </span>
               </div>
               {rule._count && (
                 <>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <Heart className="h-4 w-4" />
-                    <span>
+                    <span className="font-medium">
                       {rule._count.likes} {uiLabels.likes}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <MessageCircle className="h-4 w-4" />
-                    <span>
+                    <span className="font-medium">
                       {rule._count.comments} {uiLabels.comments}
                     </span>
                   </div>
@@ -512,31 +516,31 @@ export default function RuleDetailPage() {
             </div>
 
             {/* CLI Command */}
-            <div className="mt-4 flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-md border border-gray-200 overflow-hidden">
-              <code className="flex-1 text-xs text-gray-700 font-mono whitespace-nowrap overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 bg-muted/30 px-4 py-3 rounded-lg border border-border/50 overflow-hidden group/code">
+              <code className="flex-1 text-xs text-foreground/70 font-mono whitespace-nowrap overflow-x-auto scrollbar-hide">
                 {cliCommand}
               </code>
               <button
                 onClick={handleCliCopy}
-                className="shrink-0 p-1.5 hover:bg-gray-200 rounded transition-colors"
+                className="shrink-0 p-1.5 hover:bg-accent rounded-md transition-colors"
                 aria-label="Copy command"
               >
                 {cliCopied ? (
-                  <Check className="h-4 w-4 text-green-600" />
+                  <Check className="h-4 w-4 text-primary" />
                 ) : (
-                  <CopyIcon className="h-4 w-4 text-gray-600" />
+                  <CopyIcon className="h-4 w-4 text-muted-foreground group-hover/code:text-foreground" />
                 )}
               </button>
             </div>
 
-            <Separator className="mb-6" />
+            <Separator className="my-6" />
 
             {/* Author Info */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
+                <Avatar className="h-12 w-12">
                   <AvatarImage src={rule.user?.image || undefined} />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                     {getInitials(
                       rule.user?.name || null,
                       rule.user?.email || "U"
@@ -544,17 +548,17 @@ export default function RuleDetailPage() {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-semibold text-foreground">
                     {uiLabels.userName || rule.user?.name || rule.user?.email}
                   </p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                    <Calendar className="h-3.5 w-3.5" />
                     <span>{uiLabels.date}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <CopyButton content={rule.content} onCopy={handleCopy} />
                 {isLoaded && !isSignedIn ? (
                   <SignInButton mode="modal">
@@ -579,9 +583,9 @@ export default function RuleDetailPage() {
 
           <CardContent>
             {/* Rule Content */}
-            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-gray-700 uppercase">
+            <div className="bg-muted/50 rounded-xl p-8 border border-border/50">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   {uiLabels.cursorRule}
                 </h2>
                 <CopyButton
@@ -597,7 +601,7 @@ export default function RuleDetailPage() {
                   onCopyCountUpdate={handleCopy}
                 />
               </div>
-              <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono overflow-x-auto">
+              <pre className="text-sm text-foreground/90 whitespace-pre-wrap font-mono overflow-x-auto leading-relaxed">
                 {showOriginal
                   ? rule.content
                   : translatedContent || rule.content}

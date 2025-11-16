@@ -8,11 +8,13 @@ import { ClerkProvider } from '@clerk/nextjs';
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -27,14 +29,16 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
           suppressHydrationWarning
         >
           <Navbar />
-          {children}
-          <Toaster />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Toaster position="top-right" richColors />
         </body>
       </html>
     </ClerkProvider>
