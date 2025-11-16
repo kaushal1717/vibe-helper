@@ -9,7 +9,10 @@
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "cli:build": "cd packages/cli && npm install && npm run build",
+    "cli:dev": "cd packages/cli && npm run dev",
+    "cli": "node packages/cli/dist/index.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
