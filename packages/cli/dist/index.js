@@ -7,7 +7,7 @@ const program = new Command();
 program
     .name("cursorize")
     .description("CLI to add cursor rules to your project")
-    .version("1.0.0");
+    .version("1.0.1");
 program
     .command("init")
     .description("Initialize cursorize in your project")

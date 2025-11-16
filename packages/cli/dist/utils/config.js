@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import * as path from "path";
+import { DEFAULT_REGISTRY_URL } from "./constants.js";
 const CONFIG_FILE = ".cursorrules.json";
 export function getConfig() {
     const configPath = path.join(process.cwd(), CONFIG_FILE);
@@ -7,14 +8,12 @@ export function getConfig() {
         return fs.readJsonSync(configPath);
     }
     return {
-        registry: process.env.CURSORIZE_REGISTRY || "http://localhost:3000/api/registry",
+        registry: DEFAULT_REGISTRY_URL,
     };
 }
 export function initConfig(registryUrl) {
     const config = {
-        registry: registryUrl ||
-            process.env.CURSORIZE_REGISTRY ||
-            "http://localhost:3000/api/registry",
+        registry: registryUrl || DEFAULT_REGISTRY_URL,
     };
     fs.writeJsonSync(path.join(process.cwd(), CONFIG_FILE), config, {
         spaces: 2,

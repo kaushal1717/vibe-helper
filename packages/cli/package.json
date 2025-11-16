@@ -1,16 +1,26 @@
 {
   "name": "cursorize",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI tool to add cursor rules to your project",
   "type": "module",
   "bin": {
     "cursorize": "./dist/index.js"
   },
   "main": "./dist/index.js",
+  "homepage": "https://cursorize.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kaushal1717/vibe-helper.git",
+    "directory": "packages/cli"
+  },
   "scripts": {
     "build": "tsc",
+    "build:prod": "NODE_ENV=production tsc",
     "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "prepublish": "node scripts/prepublish.js",
+    "prepublishOnly": "npm run prepublish && npm run build:prod",
+    "postpublish": "node scripts/postpublish.js"
   },
   "dependencies": {
     "chalk": "^5.3.0",

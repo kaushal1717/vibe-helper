@@ -1,10 +1,11 @@
 import chalk from "chalk"
 import { initConfig, ensureCursorDir } from "../utils/config.js"
+import { DEFAULT_REGISTRY_URL } from "../utils/constants.js"
 
 export async function initCommand() {
   try {
     // Use default registry URL without prompting
-    const registryUrl = process.env.CURSORIZE_REGISTRY || "http://localhost:3000/api/registry"
+    const registryUrl = DEFAULT_REGISTRY_URL
 
     initConfig(registryUrl)
     ensureCursorDir()
