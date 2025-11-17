@@ -28,7 +28,7 @@ export default function Navbar() {
                 href="/"
                 className="text-xl font-semibold tracking-tight text-foreground hover:text-primary transition-colors"
               >
-                Cursor Rules
+                Cursorize
               </Link>
             </div>
             <div className="flex items-center gap-3">
@@ -49,20 +49,33 @@ export default function Navbar() {
               href="/"
               className="text-xl font-semibold tracking-tight text-foreground hover:text-primary transition-colors"
             >
-              Cursor Rules
+              Cursorize
             </Link>
           </div>
 
           <div className="flex items-center gap-3">
             {isSignedIn ? (
               <>
-                <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
-                  <Link href="/request-rule" className="flex items-center gap-2">
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="hidden sm:flex"
+                >
+                  <Link
+                    href="/request-rule"
+                    className="flex items-center gap-2"
+                  >
                     <FileText className="h-4 w-4" />
                     <span className="hidden md:inline">Request Rule</span>
                   </Link>
                 </Button>
-                <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="hidden sm:flex"
+                >
                   <Link href="/my-requests" className="flex items-center gap-2">
                     <Inbox className="h-4 w-4" />
                     <span className="hidden md:inline">My Requests</span>
@@ -75,7 +88,10 @@ export default function Navbar() {
                     size="sm"
                     className="hidden sm:flex text-primary hover:text-primary/80"
                   >
-                    <Link href="/admin/requests" className="flex items-center gap-2">
+                    <Link
+                      href="/admin/requests"
+                      className="flex items-center gap-2"
+                    >
                       <ShieldCheck className="h-4 w-4" />
                       <span className="hidden md:inline">Admin</span>
                     </Link>
@@ -98,7 +114,11 @@ export default function Navbar() {
                   </Button>
                 </SignInButton>
                 <SignUpButton mode="modal">
-                  <Button variant="default" size="sm" className="cursor-pointer">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="cursor-pointer"
+                  >
                     Sign Up
                   </Button>
                 </SignUpButton>
